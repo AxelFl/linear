@@ -20,6 +20,9 @@ prop_m22addcommut a b = nearZero (( a + b ) - (b + a))
 prop_m22addassoc :: M22 Double -> M22 Double -> M22 Double -> Bool
 prop_m22addassoc a b c = nearZero ((a + ( b + c )) - (( a + b ) + c))
 
+prop_m22multassoc :: M22 Double -> M22 Double -> M22 Double -> Bool
+prop_m22multassoc a b c = nearZero ((a * ( b * c )) - (( a * b ) * c))
+
 tests :: [TestTree]
 tests =
   [ testGroup "matrix" 
@@ -28,6 +31,7 @@ tests =
       , testProperty "transpose (transpose a) == a" prop_m22transpose
       , testProperty "commutativity of +" prop_m22addcommut
       , testProperty "associativity of +" prop_m22addassoc
+      , testProperty "associativity of *" prop_m22multassoc
       ]
     ]
   ]
