@@ -128,8 +128,8 @@ test-suite test
   main-is:        Test.hs
   other-modules:  Prop.Quaternion
                   Prop.Matrix
-                  Prop.V3
                   Prop.V2
+                  Prop.V3
                   Unit.Binary
                   Unit.Plucker
                   Unit.V
