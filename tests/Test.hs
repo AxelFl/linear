@@ -4,6 +4,7 @@ module Main (main) where
 import Test.Tasty (defaultMain, testGroup, TestTree)
 
 import qualified Prop.Quaternion
+import qualified Prop.Matrix
 import qualified Unit.Binary
 import qualified Unit.Plucker
 import qualified Unit.V
@@ -12,6 +13,7 @@ tests :: [TestTree]
 tests =
   [ testGroup "Property tests"
     [ testGroup "Quaternion" Prop.Quaternion.tests
+    , testGroup "Matrix" Prop.Matrix.tests
     ]
   , testGroup "Unit tests"
     [ testGroup "Binary" Unit.Binary.tests

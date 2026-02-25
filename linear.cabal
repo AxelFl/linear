@@ -127,7 +127,9 @@ test-suite test
   type:           exitcode-stdio-1.0
   main-is:        Test.hs
   other-modules:  Prop.Quaternion
+                  Prop.Matrix
                   Prop.V3
+                  Prop.V2
                   Unit.Binary
                   Unit.Plucker
                   Unit.V
