@@ -22,6 +22,9 @@ prop_m22addassoc a b c = nearZero ((a + ( b + c )) - (( a + b ) + c))
 prop_m22multassoc :: M22 Double -> M22 Double -> M22 Double -> Bool
 prop_m22multassoc a b c = nearZero ((a !*! ( b !*! c )) - (( a !*! b ) !*! c))
 
+prop_m22invmult :: M22 Double -> M22 Double -> Property
+prop_m22invmult a b = (det22 a /= 0 && det22 b /= 0) ==> nearZero $ ( inv22 ( a !*! b ) ) - ( inv22 b !*! inv22 a )
+
 tests :: [TestTree]
 tests =
   [testGroup "2x2 matrix"
@@ -30,5 +33,6 @@ tests =
     , testProperty "commutativity of +" prop_m22addcommut
     , testProperty "associativity of +" prop_m22addassoc
     , testProperty "associativity of *" prop_m22multassoc
+    , testProperty "(AB)^-1 == B^-1 * A^-1" prop_m22invmult
     ]
   ]
