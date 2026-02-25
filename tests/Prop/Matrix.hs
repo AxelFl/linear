@@ -25,13 +25,11 @@ prop_m22multassoc a b c = nearZero ((a * ( b * c )) - (( a * b ) * c))
 
 tests :: [TestTree]
 tests =
-  [ testGroup "matrix" 
-    [testGroup "2x2 matrix"
-      [ testProperty "inv22 (inv22 a) == a" prop_m22inv
-      , testProperty "transpose (transpose a) == a" prop_m22transpose
-      , testProperty "commutativity of +" prop_m22addcommut
-      , testProperty "associativity of +" prop_m22addassoc
-      , testProperty "associativity of *" prop_m22multassoc
-      ]
+  [testGroup "2x2 matrix"
+    [ testProperty "inv22 (inv22 a) == a" prop_m22inv
+    , testProperty "transpose (transpose a) == a" prop_m22transpose
+    , testProperty "commutativity of +" prop_m22addcommut
+    , testProperty "associativity of +" prop_m22addassoc
+    , testProperty "associativity of *" prop_m22multassoc
     ]
   ]
