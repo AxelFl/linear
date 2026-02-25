@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
 module Prop.Matrix (tests) where
 
 import Linear.Matrix (M22, inv22, det22, transpose)
