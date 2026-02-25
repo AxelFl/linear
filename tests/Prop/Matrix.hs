@@ -1,6 +1,6 @@
 module Prop.Matrix (tests) where
 
-import Linear.Matrix (M22, inv22, det22, transpose)
+import Linear.Matrix (M22, inv22, det22, transpose, (!*!))
 import Linear.Epsilon (nearZero)
 import Test.QuickCheck (Property, (==>))
 import Prop.V2 ()
@@ -20,7 +20,7 @@ prop_m22addassoc :: M22 Double -> M22 Double -> M22 Double -> Bool
 prop_m22addassoc a b c = nearZero ((a + ( b + c )) - (( a + b ) + c))
 
 prop_m22multassoc :: M22 Double -> M22 Double -> M22 Double -> Bool
-prop_m22multassoc a b c = nearZero ((a * ( b * c )) - (( a * b ) * c))
+prop_m22multassoc a b c = nearZero ((a !*! ( b !*! c )) - (( a !*! b ) !*! c))
 
 tests :: [TestTree]
 tests =
