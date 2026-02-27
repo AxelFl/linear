@@ -130,6 +130,7 @@ test-suite test
                   Prop.Matrix
                   Prop.V2
                   Prop.V3
+                  Prop.Vector
                   Unit.Binary
                   Unit.Plucker
                   Unit.V
