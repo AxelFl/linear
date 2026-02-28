@@ -25,7 +25,7 @@ prop_m22multassoc :: M22 Double -> M22 Double -> M22 Double -> Bool
 prop_m22multassoc = additiveAssoc (!*!)
 
 prop_m22invmult :: M22 Double -> M22 Double -> Property
-prop_m22invmult a b = ( not (nearZero (det22 a)) && not (nearZero (det22 b)) ) ==>
+prop_m22invmult a b = (not . nearZero . det22) a && (not . nearZero . det22) b ==>
   nearZero $ inv22 (a !*! b) !-! (inv22 b !*! inv22 a)
 
 prop_m33multident :: M33 Double -> Bool
