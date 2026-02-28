@@ -1,7 +1,7 @@
 module Prop.Matrix (tests) where
 
 import Linear.Epsilon (nearZero)
-import Linear.Matrix (M22, det22, inv22, M33, transpose, (!*!), (!+!), (!-!), identity)
+import Linear.Matrix (M22, det22, inv22, M33, transpose, (!*!), (!+!), (!-!), identity, Trace(trace))
 import Prop.V2 ()
 import Prop.V3 ()
 import Prop.Vector (additiveAssoc)
@@ -30,6 +30,12 @@ prop_m22invmult a b = (det22 a /= 0 && det22 b /= 0) ==> nearZero $ inv22 (a !*!
 prop_m33multident :: M33 Double -> Bool
 prop_m33multident a = a !*! identity == a
 
+prop_tracelinear :: M33 Double -> M33 Double -> Bool
+prop_tracelinear a b = nearZero (trace (a !+! b) - (trace a + trace b))
+
+prop_tracetranspose :: M33 Double -> Bool
+prop_tracetranspose a = trace a == trace (transpose a)
+
 tests :: [TestTree]
 tests =
   [ testGroup
@@ -40,6 +46,8 @@ tests =
       , testProperty "associativity of !+!" prop_m22addassoc
       , testProperty "associativity of !*!" prop_m22multassoc
       , testProperty "identity matrix neutral element under !*!" prop_m33multident
+      , testProperty "trace (a !+! b) == trace a + trace b" prop_tracelinear
+      , testProperty "trace a == trace (transpose a)" prop_tracetranspose
       ]
   , testGroup
       "2x2 matrix"
