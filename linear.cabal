@@ -131,6 +131,7 @@ test-suite test
                   Prop.Metric
                   Prop.V2
                   Prop.V3
+                  Prop.V4
                   Prop.Vector
                   Unit.Binary
                   Unit.Plucker
