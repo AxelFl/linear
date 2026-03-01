@@ -128,6 +128,7 @@ test-suite test
   main-is:        Test.hs
   other-modules:  Prop.Quaternion
                   Prop.Matrix
+                  Prop.Metric
                   Prop.V2
                   Prop.V3
                   Prop.Vector
