@@ -1,10 +1,9 @@
 module Prop.Matrix (tests) where
 
 import Linear.Matrix (M22, det22, inv22, M33, transpose, (!*!), (!+!), identity, Trace(trace), (!!*), (*!!))
-import Linear.Vector (Additive)
 import Prop.V2 ()
 import Prop.V3 ()
-import Test.QuickCheck (Property, (==>), (.&&.))
+import Test.QuickCheck (Property, (==>))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck (testProperty)
 
@@ -15,44 +14,28 @@ prop_m22transpose :: M22 Rational -> Bool
 prop_m22transpose a = transpose (transpose a) == a
 
 testsAddAssoc :: TestTree
-testsAddAssoc = testGroup "associativity of !+!" [
-     testProperty "m22" prop_m22addassoc
-    ,testProperty "m33" prop_m33addassoc
+testsAddAssoc = testGroup "associativity of !+!"
+  [ testProperty "m22" (prop_addassoc :: M22 Rational -> M22 Rational -> M22 Rational -> Bool)
+  , testProperty "m33" (prop_addassoc :: M33 Rational -> M33 Rational -> M33 Rational -> Bool)
   ]
   where
-      prop_addassoc:: (Additive m, Additive n, Ord (m (n Rational))) => m (n Rational) -> m (n Rational) -> m (n Rational) -> Bool
       prop_addassoc a b c = ((a !+! b) !+! c) == (a !+! (b !+! c))
 
-      prop_m22addassoc :: M22 Rational -> M22 Rational -> M22 Rational -> Bool
-      prop_m22addassoc = prop_addassoc
-      prop_m33addassoc :: M33 Rational -> M33 Rational -> M33 Rational -> Bool
-      prop_m33addassoc = prop_addassoc
-
 testsMulAssoc :: TestTree
-testsMulAssoc = testGroup "associativity of !*!" [
-     testProperty "m22" prop_m22mulassoc
-    ,testProperty "m33" prop_m33mulassoc
+testsMulAssoc = testGroup "associativity of !*!"
+  [ testProperty "m22" (prop_mulassoc :: M22 Rational -> M22 Rational -> M22 Rational -> Bool)
+  , testProperty "m33" (prop_mulassoc :: M33 Rational -> M33 Rational -> M33 Rational -> Bool)
   ]
   where
-    prop_mulassoc:: (Additive m, Foldable m, Ord (m (m Rational))) => m (m Rational) -> m (m Rational) -> m (m Rational) -> Bool
     prop_mulassoc a b c = ((a !*! b) !*! c) == (a !*! (b !*! c))
-    prop_m22mulassoc :: M22 Rational -> M22 Rational -> M22 Rational -> Bool
-    prop_m22mulassoc = prop_mulassoc
-    prop_m33mulassoc :: M33 Rational -> M33 Rational -> M33 Rational -> Bool
-    prop_m33mulassoc = prop_mulassoc
 
 testsAddCommut :: TestTree
-testsAddCommut = testGroup "commutativity of !+!" [
-     testProperty "m22" prop_m22addcommut
-    ,testProperty "m33"prop_m33addcommut
+testsAddCommut = testGroup "commutativity of !+!"
+  [ testProperty "m22" (prop_addcommut :: M22 Rational -> M22 Rational -> Bool)
+  , testProperty "m33" (prop_addcommut :: M33 Rational -> M33 Rational -> Bool)
   ]
   where
-    prop_addcommut:: (Additive m, Additive n, Ord (m (n Rational))) => m (n Rational) -> m (n Rational) -> Bool
     prop_addcommut a b = (a !+! b) == (b !+! a)
-    prop_m22addcommut :: M22 Rational -> M22 Rational -> Bool
-    prop_m22addcommut = prop_addcommut
-    prop_m33addcommut :: M33 Rational -> M33 Rational -> Bool
-    prop_m33addcommut = prop_addcommut
 
 prop_m22invmult :: M22 Rational -> M22 Rational -> Property
 prop_m22invmult a b = det22 a /= 0 && det22 b /= 0 ==>
