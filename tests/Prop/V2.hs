@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module Prop.V2 (arbitrary) where
+module Prop.V2 () where
 
 import Linear.V2 (V2 (..))
 import Test.QuickCheck (Arbitrary (..))
