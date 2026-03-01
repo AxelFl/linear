@@ -47,6 +47,12 @@ prop_tracetranspose a = trace a == trace (transpose a)
 prop_m33lrscalar :: M33 Double -> Double -> Bool
 prop_m33lrscalar m a = m !!* a == a *!! m
 
+-- 1e-11 is just a small value, the "standard" nearZero is 1e-12,
+-- but this fails too often, with the largest errors being just above
+-- this threshold.
+prop_m33traceswap :: M33 Double -> M33 Double -> Bool
+prop_m33traceswap a b = (1e-11 >) (trace (a !*! b) - trace (b !*! a))
+
 tests :: [TestTree]
 tests =
   [ testGroup
@@ -60,6 +66,7 @@ tests =
       , testProperty "trace (a !+! b) == trace a + trace b" prop_tracelinear
       , testProperty "trace a == trace (transpose a)" prop_tracetranspose
       , testProperty "Left and right scalar product are equal" prop_m33lrscalar
+      , testProperty "trace (a !*! b) == trace (b !*! a)" prop_m33traceswap
       ]
   , testGroup
       "2x2 matrix"
