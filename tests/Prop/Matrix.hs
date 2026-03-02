@@ -1,7 +1,8 @@
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE CPP #-}
 module Prop.Matrix (tests) where
 
-import Linear.Matrix (M22, det22, inv22, M33, M44, transpose, (!*!), (!+!), identity, Trace(trace), (!!*), (*!!))
+import Linear.Matrix (M22, det22, inv22, M33, transpose, (!*!), (!+!), identity, Trace(trace), (!!*), (*!!))
 import Linear.Vector (Additive)
 import Linear.V2 (V2)
 import Linear.V3 (V3)
@@ -12,6 +13,13 @@ import Prop.V4 ()
 import Test.QuickCheck (Property, (==>))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck (testProperty)
+import Test.QuickCheck ((.&&.))
+
+#define TESSTSQUAREMATRIX(testname) \
+( testname @V2 @Rational .&&. \
+  testname @V3 @Rational .&&. \
+  testname @V4 @Rational \
+)
 
 prop_m22inv :: M22 Rational -> Property
 prop_m22inv a = (det22 a /= 0) ==> inv22 (inv22 a) == a
@@ -20,32 +28,24 @@ prop_m22transpose :: M22 Rational -> Bool
 prop_m22transpose a = transpose (transpose a) == a
 
 testsAddAssoc :: TestTree
-testsAddAssoc = testGroup "associativity of !+!"
-  [ testProperty "m22" (prop_addassoc @V2)
-  , testProperty "m33" (prop_addassoc @V3)
-  , testProperty "m44" (prop_addassoc @V4)
-  ]
+testsAddAssoc = testProperty "associativity of !+!"
+  TESSTSQUAREMATRIX(prop_addassoc)
   where
-    prop_addassoc :: (Eq (m (m Rational)), Additive m) => m (m Rational) -> m (m Rational) -> m (m Rational) -> Bool
+    prop_addassoc :: (Eq (m (m a)), Additive m, Num a) => m (m a) -> m (m a) -> m (m a) -> Bool
     prop_addassoc a b c = ((a !+! b) !+! c) == (a !+! (b !+! c))
 
 testsMulAssoc :: TestTree
-testsMulAssoc = testGroup "associativity of !*!"
-  [ testProperty "m22" (prop_mulassoc @V2)
-  , testProperty "m33" (prop_mulassoc @V3)
-  , testProperty "m44" (prop_mulassoc @V4)
-  ]
+testsMulAssoc = testProperty "associativity of !*!"
+  TESSTSQUAREMATRIX(prop_mulassoc)
   where
-    prop_mulassoc :: (Eq (m (m Rational)), Additive m, Foldable m) => m (m Rational) -> m (m Rational) -> m (m Rational) -> Bool
+    prop_mulassoc :: (Eq (m (m a)), Additive m, Foldable m, Num a) => m (m a) -> m (m a) -> m (m a) -> Bool
     prop_mulassoc a b c = ((a !*! b) !*! c) == (a !*! (b !*! c))
 
 testsAddCommut :: TestTree
-testsAddCommut = testGroup "commutativity of !+!"
-  [ testProperty "m22" (prop_addcommut :: M22 Rational -> M22 Rational -> Bool)
-  , testProperty "m33" (prop_addcommut :: M33 Rational -> M33 Rational -> Bool)
-  , testProperty "m44" (prop_addcommut :: M44 Rational -> M44 Rational -> Bool)
-  ]
+testsAddCommut = testProperty "commutativity of !+!"
+  TESSTSQUAREMATRIX(prop_addcommut)
   where
+    prop_addcommut :: (Eq (m (m a)), Additive m, Num a) => m (m a) -> m (m a) -> Bool
     prop_addcommut a b = (a !+! b) == (b !+! a)
 
 prop_m22invmult :: M22 Rational -> M22 Rational -> Property
