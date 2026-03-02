@@ -2,7 +2,7 @@
 {-# LANGUAGE CPP #-}
 module Prop.Matrix (tests) where
 
-import Linear.Matrix (M22, det22, inv22, M33, transpose, (!*!), (!+!), identity, Trace(trace), (!!*), (*!!))
+import Linear.Matrix (M22, det22, inv22, transpose, (!*!), (!+!), identity, Trace(trace), (!!*), (*!!))
 import Linear.Vector (Additive)
 import Linear.V2 (V2)
 import Linear.V3 (V3)
@@ -66,17 +66,29 @@ prop_IdentityNeutral = SQUAREMATRIX(prop)
     prop :: (Eq (m (m a)), Additive m, Foldable m, Traversable m, Applicative m,  Num a) => m (m a) -> Bool
     prop a = a !*! identity == a
 
-prop_tracelinear :: M33 Rational -> M33 Rational -> Bool
-prop_tracelinear a b = trace (a !+! b) == (trace a + trace b)
+prop_TraceLinear :: Property
+prop_TraceLinear = SQUAREMATRIX(prop)
+  where
+  prop :: (Trace m, Additive m, Num a, Eq a) => m (m a) -> m (m a) -> Bool
+  prop a b = trace (a !+! b) == (trace a + trace b)
 
-prop_tracetranspose :: M33 Rational -> Bool
-prop_tracetranspose a = trace a == trace (transpose a)
+prop_TraceTranspose :: Property
+prop_TraceTranspose = SQUAREMATRIX(prop)
+  where
+    prop :: (Trace m, Distributive m, Num a, Eq a) => m (m a) -> Bool
+    prop a = trace a == trace (transpose a)
 
-prop_m33lrscalar :: M33 Rational -> Rational -> Bool
-prop_m33lrscalar m a = m !!* a == a *!! m
+prop_LRScalar :: Property
+prop_LRScalar = ALLMATRIX(prop)
+  where
+    prop :: (Functor m, Functor n, Num a, Eq (m (n a))) => m (n a) -> a -> Bool
+    prop m a = m !!* a == a *!! m
 
-prop_m33traceswap :: M33 Rational -> M33 Rational -> Bool
-prop_m33traceswap a b = trace (a !*! b) == trace (b !*! a)
+prop_TraceSwap :: Property
+prop_TraceSwap = SQUAREMATRIX(prop)
+  where
+    prop :: (Foldable m, Trace m, Additive m, Eq a, Num a) => m (m a) -> m (m a) -> Bool
+    prop a b = trace (a !*! b) == trace (b !*! a)
 
 -- 2x2 block
 prop_m22inv :: M22 Rational -> Property
@@ -99,10 +111,10 @@ tests =
       , testProperty "associativity of !+!" prop_AddAssoc
       , testProperty "associativity of !*!" prop_MulAssoc
       , testProperty "identity is neutral under !*!" prop_IdentityNeutral
-      , testProperty "trace (a !+! b) == trace a + trace b" prop_tracelinear
-      , testProperty "trace a == trace (transpose a)" prop_tracetranspose
-      , testProperty "Left and right scalar product are equal" prop_m33lrscalar
-      , testProperty "trace (a !*! b) == trace (b !*! a)" prop_m33traceswap
+      , testProperty "trace (a !+! b) == trace a + trace b" prop_TraceLinear
+      , testProperty "trace a == trace (transpose a)" prop_TraceTranspose
+      , testProperty "Left and right scalar product are equal" prop_LRScalar
+      , testProperty "trace (a !*! b) == trace (b !*! a)" prop_TraceSwap
       ]
   , testGroup
       "2x2 matrix"
