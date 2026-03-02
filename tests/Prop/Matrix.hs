@@ -1,6 +1,11 @@
+{-# LANGUAGE TypeApplications #-}
 module Prop.Matrix (tests) where
 
 import Linear.Matrix (M22, det22, inv22, M33, M44, transpose, (!*!), (!+!), identity, Trace(trace), (!!*), (*!!))
+import Linear.Vector (Additive)
+import Linear.V2 (V2)
+import Linear.V3 (V3)
+import Linear.V4 (V4)
 import Prop.V2 ()
 import Prop.V3 ()
 import Prop.V4 ()
@@ -16,20 +21,22 @@ prop_m22transpose a = transpose (transpose a) == a
 
 testsAddAssoc :: TestTree
 testsAddAssoc = testGroup "associativity of !+!"
-  [ testProperty "m22" (prop_addassoc :: M22 Rational -> M22 Rational -> M22 Rational -> Bool)
-  , testProperty "m33" (prop_addassoc :: M33 Rational -> M33 Rational -> M33 Rational -> Bool)
-  , testProperty "m44" (prop_addassoc :: M44 Rational -> M44 Rational -> M44 Rational -> Bool)
+  [ testProperty "m22" (prop_addassoc @V2)
+  , testProperty "m33" (prop_addassoc @V3)
+  , testProperty "m44" (prop_addassoc @V4)
   ]
   where
-      prop_addassoc a b c = ((a !+! b) !+! c) == (a !+! (b !+! c))
+    prop_addassoc :: (Eq (m (m Rational)), Additive m) => m (m Rational) -> m (m Rational) -> m (m Rational) -> Bool
+    prop_addassoc a b c = ((a !+! b) !+! c) == (a !+! (b !+! c))
 
 testsMulAssoc :: TestTree
 testsMulAssoc = testGroup "associativity of !*!"
-  [ testProperty "m22" (prop_mulassoc :: M22 Rational -> M22 Rational -> M22 Rational -> Bool)
-  , testProperty "m33" (prop_mulassoc :: M33 Rational -> M33 Rational -> M33 Rational -> Bool)
-  , testProperty "m44" (prop_mulassoc :: M44 Rational -> M44 Rational -> M44 Rational -> Bool)
+  [ testProperty "m22" (prop_mulassoc @V2)
+  , testProperty "m33" (prop_mulassoc @V3)
+  , testProperty "m44" (prop_mulassoc @V4)
   ]
   where
+    prop_mulassoc :: (Eq (m (m Rational)), Additive m, Foldable m) => m (m Rational) -> m (m Rational) -> m (m Rational) -> Bool
     prop_mulassoc a b c = ((a !*! b) !*! c) == (a !*! (b !*! c))
 
 testsAddCommut :: TestTree
