@@ -10,14 +10,18 @@ import Test.QuickCheck (Arbitrary(..))
 instance Arbitrary a => Arbitrary (V3 a) where
   arbitrary = V3 <$> arbitrary <*> arbitrary <*> arbitrary
 
-prop_crossinv :: V3 Double -> V3 Double -> Bool
+prop_crossinv :: V3 Rational -> V3 Rational -> Bool
 prop_crossinv a b = a `cross` b == - (b `cross` a)
 
-prop_selfcross :: V3 Double -> Bool
+prop_selfcross :: V3 Rational -> Bool
 prop_selfcross a = a `cross` a == zero
+
+prop_distcross :: V3 Rational -> V3 Rational -> V3 Rational -> Bool
+prop_distcross a b c = (a + b) `cross` c == (a `cross` c) + (b `cross` c)
 
 tests :: [TestTree]
 tests = 
   [ testProperty "a x b == - (b x a)" prop_crossinv
   , testProperty "a x a == 0" prop_selfcross
+  , testProperty "(a + b) x c == a x c + b x c" prop_distcross
   ]
