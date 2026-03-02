@@ -63,8 +63,6 @@ prop_m33lrscalar m a = m !!* a == a *!! m
 prop_m33traceswap :: M33 Rational -> M33 Rational -> Bool
 prop_m33traceswap a b = trace (a !*! b) == trace (b !*! a)
 
-
-
 tests :: [TestTree]
 tests =
   [ testGroup
