@@ -15,48 +15,56 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck (testProperty)
 import Test.QuickCheck ((.&&.))
 
-#define TESSTSQUAREMATRIX(testname) \
+import Data.Distributive (Distributive)
+
+#define SQUAREMATRIX(testname) \
 ( testname @V2 @Rational .&&. \
   testname @V3 @Rational .&&. \
   testname @V4 @Rational \
 )
 
-prop_m22inv :: M22 Rational -> Property
-prop_m22inv a = (det22 a /= 0) ==> inv22 (inv22 a) == a
+#define ALLMATRIX(testname) \
+( testname @V2 @V2 @Rational .&&. \
+  testname @V2 @V3 @Rational .&&. \
+  testname @V2 @V4 @Rational .&&. \
+  testname @V3 @V2 @Rational .&&. \
+  testname @V3 @V3 @Rational .&&. \
+  testname @V3 @V3 @Rational .&&. \
+  testname @V4 @V2 @Rational .&&. \
+  testname @V4 @V3 @Rational .&&. \
+  testname @V4 @V4 @Rational \
+)
 
-prop_m22transpose :: M22 Rational -> Bool
-prop_m22transpose a = transpose (transpose a) == a
-
-testsAddAssoc :: TestTree
-testsAddAssoc = testProperty "associativity of !+!"
-  TESSTSQUAREMATRIX(prop_addassoc)
+-- General block
+prop_Transpose :: Property
+prop_Transpose = ALLMATRIX(prop)
   where
-    prop_addassoc :: (Eq (m (m a)), Additive m, Num a) => m (m a) -> m (m a) -> m (m a) -> Bool
+    prop :: (Eq (m (n a)), Distributive m, Distributive n) => m (n a) -> Bool
+    prop a = transpose (transpose a) == a
+
+prop_AddAssoc :: Property
+prop_AddAssoc = ALLMATRIX(prop_addassoc)
+  where
+    prop_addassoc :: (Eq (m (n a)), Additive m, Additive n, Num a) => m (n a) -> m (n a) -> m (n a) -> Bool
     prop_addassoc a b c = ((a !+! b) !+! c) == (a !+! (b !+! c))
 
-testsMulAssoc :: TestTree
-testsMulAssoc = testProperty "associativity of !*!"
-  TESSTSQUAREMATRIX(prop_mulassoc)
+prop_MulAssoc :: Property
+prop_MulAssoc = SQUAREMATRIX(prop_mulassoc)
   where
     prop_mulassoc :: (Eq (m (m a)), Additive m, Foldable m, Num a) => m (m a) -> m (m a) -> m (m a) -> Bool
     prop_mulassoc a b c = ((a !*! b) !*! c) == (a !*! (b !*! c))
 
-testsAddCommut :: TestTree
-testsAddCommut = testProperty "commutativity of !+!"
-  TESSTSQUAREMATRIX(prop_addcommut)
+prop_AddCommut :: Property
+prop_AddCommut = ALLMATRIX(prop_addcommut)
   where
-    prop_addcommut :: (Eq (m (m a)), Additive m, Num a) => m (m a) -> m (m a) -> Bool
+    prop_addcommut :: (Eq (m (n a)), Additive m, Additive n, Num a) => m (n a) -> m (n a) -> Bool
     prop_addcommut a b = (a !+! b) == (b !+! a)
 
-prop_m22invmult :: M22 Rational -> M22 Rational -> Property
-prop_m22invmult a b = det22 a /= 0 && det22 b /= 0 ==>
-  (inv22 (a !*! b) == (inv22 b !*! inv22 a))
-
-prop_m22invident :: M22 Rational -> Property
-prop_m22invident a = det22 a /= 0 ==> a !*! inv22 a == identity
-
-prop_m33multident :: M33 Rational -> Bool
-prop_m33multident a = a !*! identity == a
+prop_IdentityNeutral :: Property
+prop_IdentityNeutral = SQUAREMATRIX(prop)
+  where
+    prop :: (Eq (m (m a)), Additive m, Foldable m, Traversable m, Applicative m,  Num a) => m (m a) -> Bool
+    prop a = a !*! identity == a
 
 prop_tracelinear :: M33 Rational -> M33 Rational -> Bool
 prop_tracelinear a b = trace (a !+! b) == (trace a + trace b)
@@ -70,16 +78,27 @@ prop_m33lrscalar m a = m !!* a == a *!! m
 prop_m33traceswap :: M33 Rational -> M33 Rational -> Bool
 prop_m33traceswap a b = trace (a !*! b) == trace (b !*! a)
 
+-- 2x2 block
+prop_m22inv :: M22 Rational -> Property
+prop_m22inv a = (det22 a /= 0) ==> inv22 (inv22 a) == a
+
+prop_m22invident :: M22 Rational -> Property
+prop_m22invident a = det22 a /= 0 ==> a !*! inv22 a == identity
+
+prop_m22invmult :: M22 Rational -> M22 Rational -> Property
+prop_m22invmult a b = det22 a /= 0 && det22 b /= 0 ==>
+  (inv22 (a !*! b) == (inv22 b !*! inv22 a))
+
 tests :: [TestTree]
 tests =
   [ testGroup
       -- These tests don't rely on any specific size of matrix to function
       "general matrix operations"
-      [ testProperty "transpose (transpose a) == a" prop_m22transpose
-      , testsAddCommut
-      , testsAddAssoc
-      , testsMulAssoc
-      , testProperty "identity matrix neutral element under !*!" prop_m33multident
+      [ testProperty "transpose (transpose a) == a" prop_Transpose
+      , testProperty "commutativity of !+!" prop_AddCommut
+      , testProperty "associativity of !+!" prop_AddAssoc
+      , testProperty "associativity of !*!" prop_MulAssoc
+      , testProperty "identity is neutral under !*!" prop_IdentityNeutral
       , testProperty "trace (a !+! b) == trace a + trace b" prop_tracelinear
       , testProperty "trace a == trace (transpose a)" prop_tracetranspose
       , testProperty "Left and right scalar product are equal" prop_m33lrscalar
