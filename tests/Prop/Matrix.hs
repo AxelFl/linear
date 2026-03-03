@@ -129,16 +129,25 @@ prop_TraceSwap = SQUAREMATRIX (prop)
   prop a b = trace (a !*! b) == trace (b !*! a)
 
 -- 2x2 block
-prop_m22inv :: M22 Rational -> Property
-prop_m22inv a = (det22 a /= 0) ==> inv22 (inv22 a) == a
 
-prop_m22invident :: M22 Rational -> Property
-prop_m22invident a = det22 a /= 0 ==> a !*! inv22 a == identity
+prop_dettranspose_m22 :: M22 Rational -> Bool
+prop_dettranspose_m22 a = det22 (transpose a) == det22 a
 
-prop_m22invmult :: M22 Rational -> M22 Rational -> Property
-prop_m22invmult a b =
+prop_detprod_m22 :: M22 Rational -> M22 Rational -> Bool
+prop_detprod_m22 a b = det22 (a !*! b) == det22 a * det22 b
+
+prop_detscalarpow_m22 :: M22 Rational -> Rational -> Bool
+prop_detscalarpow_m22 a c = det22 (c *!! a) == (c^2) * det22 a
+
+prop_inv_m22 :: M22 Rational -> Property
+prop_inv_m22 a = (det22 a /= 0) ==> inv22 (inv22 a) == a
+
+prop_invident_m22 :: M22 Rational -> Property
+prop_invident_m22 a = det22 a /= 0 ==> a !*! inv22 a == identity
+
+prop_invmult_m22 :: M22 Rational -> M22 Rational -> Property
+prop_invmult_m22 a b =
   det22 a /= 0 && det22 b /= 0 ==> (inv22 (a !*! b) == (inv22 b !*! inv22 a))
-
 tests :: [TestTree]
 tests =
   [ testGroup "General Matrix Properties" -- These tests don't rely on any specific size of matrix to function
@@ -167,8 +176,11 @@ tests =
     ]
   , testGroup
       "2x2 matrix"
-      [ testProperty "inv22 (inv22 a) == a" prop_m22inv
-      , testProperty "a !*! inv a == I" prop_m22invident
-      , testProperty "(AB)^-1 == B^-1 * A^-1" prop_m22invmult
+      [ testProperty "inv22 (inv22 a) == a" prop_inv_m22
+      , testProperty "a !*! inv a == I" prop_invident_m22
+      , testProperty "(AB)^-1 == B^-1 * A^-1" prop_invmult_m22
+      , testProperty "det A^T = det A" prop_dettranspose_m22
+      , testProperty "det (AB) = det A * det B" prop_detprod_m22
+      , testProperty "det (cA) = c^2 * det A" prop_detscalarpow_m22
       ]
   ]
