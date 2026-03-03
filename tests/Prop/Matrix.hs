@@ -142,13 +142,13 @@ prop_m22invmult a b =
 tests :: [TestTree]
 tests =
   [ testGroup "General Matrix Properties" -- These tests don't rely on any specific size of matrix to function
-      [ testGroup "Basic Properties" [
-          testProperty "commutativity of !+! A!+!B=B!+!A" prop_AddCommut
-        , testProperty "associativity of !+! (A!+!B)!+!C=A!+!(B!+!C)" prop_AddAssoc
-        , testProperty "associativity of !*! (A!*!B)!*!C=A!*!(B!*!C)" prop_MulAssoc
-        , testProperty "A!*!(B!+!C) = ((A!*!B)!+!(A!*!C))" prop_DistOfMatrix 
-        , testProperty "a*!!(B!+!C) = ((a*!!B)!+!(a*!!C))" prop_DistOfScalar
-        , testProperty "Left and right scalar product are equal" prop_LRScalar
+    [ testGroup "Basic Properties" [
+          testProperty "Commutativity of !+! A+B=B+A" prop_AddCommut
+        , testProperty "Associativity of !+! (A+B)+C=A+(B+C)" prop_AddAssoc
+        , testProperty "Associativity of !*! (AB)C=A(BC)" prop_MulAssoc
+        , testProperty "Distributivity of Matrix A(B+C) = AB+AC" prop_DistOfMatrix 
+        , testProperty "Distributivity of Scalar a(B+C) = aB+aC" prop_DistOfScalar
+        , testProperty "Left and right scalar product are equal Ab=bA" prop_LRScalar
         ]
         , testGroup "Transpose Properties" [
           testProperty "(a^T)^T == a" prop_Transpose
@@ -164,11 +164,11 @@ tests =
         , testProperty "trace (AB) == trace (BA)" prop_TraceSwap
         ]
       ]
+    ]
   , testGroup
       "2x2 matrix"
       [ testProperty "inv22 (inv22 a) == a" prop_m22inv
       , testProperty "a !*! inv a == I" prop_m22invident
       , testProperty "(AB)^-1 == B^-1 * A^-1" prop_m22invmult
       ]
-    ]
   ]
