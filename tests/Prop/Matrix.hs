@@ -51,29 +51,58 @@ prop_Transpose = ALLMATRIX (prop)
   prop :: (Eq (m (n a)), Distributive m, Distributive n) => m (n a) -> Bool
   prop a = transpose (transpose a) == a
 
-prop_AddAssoc :: Property
-prop_AddAssoc = ALLMATRIX (prop_addassoc)
+prop_TransposeDistAdd :: Property
+prop_TransposeDistAdd = ALLMATRIX (prop)
  where
-  prop_addassoc :: (Eq (m (n a)), Additive m, Additive n, Num a) => m (n a) -> m (n a) -> m (n a) -> Bool
-  prop_addassoc a b c = ((a !+! b) !+! c) == (a !+! (b !+! c))
+  prop :: (Eq (m (n a)), Eq (n (m a)), Additive m, Distributive m, Distributive n, Additive n, Num a) => m (n a) -> m (n a) -> Bool
+  prop a b = transpose (a !+! b) == (transpose a !+! transpose b)
+
+prop_TransposeDistMul :: Property
+prop_TransposeDistMul = prop @V2 @V2 @Rational .&&. prop @V2 @V2 @Rational
+ where
+  prop :: (Additive m, Foldable m, Distributive m, Distributive n, Foldable n, Additive n, Num a, Eq (m (m a))) => m (n a) -> n (m a) -> Bool
+  prop a b = transpose (a !*! b) == (transpose b !*! transpose a)
+
+prop_AddAssoc :: Property
+prop_AddAssoc = ALLMATRIX (prop)
+ where
+  prop :: (Eq (m (n a)), Additive m, Additive n, Num a) => m (n a) -> m (n a) -> m (n a) -> Bool
+  prop a b c = ((a !+! b) !+! c) == (a !+! (b !+! c))
 
 prop_MulAssoc :: Property
-prop_MulAssoc = SQUAREMATRIX (prop_mulassoc)
+prop_MulAssoc = SQUAREMATRIX (prop)
  where
-  prop_mulassoc :: (Eq (m (m a)), Additive m, Foldable m, Num a) => m (m a) -> m (m a) -> m (m a) -> Bool
-  prop_mulassoc a b c = ((a !*! b) !*! c) == (a !*! (b !*! c))
+  prop :: (Eq (m (m a)), Additive m, Foldable m, Num a) => m (m a) -> m (m a) -> m (m a) -> Bool
+  prop a b c = ((a !*! b) !*! c) == (a !*! (b !*! c))
 
 prop_AddCommut :: Property
-prop_AddCommut = ALLMATRIX (prop_addcommut)
+prop_AddCommut = ALLMATRIX (prop)
  where
-  prop_addcommut :: (Eq (m (n a)), Additive m, Additive n, Num a) => m (n a) -> m (n a) -> Bool
-  prop_addcommut a b = (a !+! b) == (b !+! a)
+  prop :: (Eq (m (n a)), Additive m, Additive n, Num a) => m (n a) -> m (n a) -> Bool
+  prop a b = (a !+! b) == (b !+! a)
 
-prop_IdentityNeutral :: Property
-prop_IdentityNeutral = SQUAREMATRIX (prop)
+prop_DistOfMatrix:: Property
+prop_DistOfMatrix = SQUAREMATRIX (prop)
+  where 
+    prop:: (Eq (m (m a)), Additive m, Foldable m, Num a) => m (m a) -> m (m a) -> m (m a) -> Bool
+    prop a b c = (a !*! (b !+! c)) == ((a !*! b) !+! (a !*! c)) 
+
+prop_DistOfScalar:: Property
+prop_DistOfScalar = SQUAREMATRIX (prop)
+  where 
+    prop:: (Eq (m (m a)), Additive m, Foldable m, Num a) => a -> m (m a) -> m (m a) -> Bool
+    prop a b c = a*!!(b!+!c) == ((a*!!b)!+!(a*!!c))
+
+prop_IdentityNeutralL :: Property
+prop_IdentityNeutralL = SQUAREMATRIX (prop)
  where
   prop :: (Eq (m (m a)), Additive m, Foldable m, Traversable m, Applicative m, Num a) => m (m a) -> Bool
   prop a = a !*! identity == a
+prop_IdentityNeutralR :: Property
+prop_IdentityNeutralR = SQUAREMATRIX (prop)
+ where
+  prop :: (Eq (m (m a)), Additive m, Foldable m, Traversable m, Applicative m, Num a) => m (m a) -> Bool
+  prop a = identity !*! a == a
 
 prop_TraceLinear :: Property
 prop_TraceLinear = SQUAREMATRIX (prop)
@@ -114,16 +143,28 @@ tests :: [TestTree]
 tests =
   [ testGroup
       -- These tests don't rely on any specific size of matrix to function
-      "general matrix operations"
-      [ testProperty "transpose (transpose a) == a" prop_Transpose
-      , testProperty "commutativity of !+!" prop_AddCommut
-      , testProperty "associativity of !+!" prop_AddAssoc
-      , testProperty "associativity of !*!" prop_MulAssoc
-      , testProperty "identity is neutral under !*!" prop_IdentityNeutral
-      , testProperty "trace (a !+! b) == trace a + trace b" prop_TraceLinear
-      , testProperty "trace a == trace (transpose a)" prop_TraceTranspose
-      , testProperty "Left and right scalar product are equal" prop_LRScalar
-      , testProperty "trace (a !*! b) == trace (b !*! a)" prop_TraceSwap
+      "General Matrix Properties"
+      [ testGroup "Basic Properties" [
+          testProperty "commutativity of !+! A!+!B=B!+!A" prop_AddCommut
+        , testProperty "associativity of !+! (A!+!B)!+!C=A!+!(B!+!C)" prop_AddAssoc
+        , testProperty "associativity of !*! (A!*!B)!*!C=A!*!(B!*!C)" prop_MulAssoc
+        , testProperty "A!*!(B!+!C) = ((A!*!B)!+!(A!*!C))" prop_DistOfMatrix 
+        , testProperty "a*!!(B!+!C) = ((a*!!B)!+!(a*!!C))" prop_DistOfScalar
+        , testProperty "Left and right scalar product are equal" prop_LRScalar
+        ]
+        , testGroup "Transpose Properties" [
+          testProperty "(a^T)^T == a" prop_Transpose
+        , testProperty "(A+B)^T == (A^T + B^T)" prop_TransposeDistAdd
+        , testProperty "(AB)^T == (B^T A^T)" prop_TransposeDistMul
+        ]
+      , testGroup "Identity Properties" [
+          testProperty "identity is neutral under !*! AI=A" prop_IdentityNeutralR
+        , testProperty "identity is neutral under !*! IA=A" prop_IdentityNeutralL
+      , testGroup "Trace Properties" [
+          testProperty "trace (A+B) == trace A + trace B" prop_TraceLinear
+        , testProperty "trace A == trace (A^T)" prop_TraceTranspose
+        , testProperty "trace (AB) == trace (BA)" prop_TraceSwap
+        ]
       ]
   , testGroup
       "2x2 matrix"
