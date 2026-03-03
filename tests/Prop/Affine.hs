@@ -1,6 +1,6 @@
 module Prop.Affine (tests) where
 
-import Linear.Affine (Affine(..))
+import Linear.Affine (Affine (..))
 import Linear.V3 (V3)
 import Prop.V3 ()
 import Test.Tasty (TestTree)
