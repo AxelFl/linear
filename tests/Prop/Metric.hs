@@ -45,8 +45,19 @@ testsDotDist = testProperty "Distributivity of scalar product over addition"
     prop :: (Metric v, Num a, Eq a) => v a -> v a -> v a -> Bool
     prop a b c = (a ^+^ b) `dot` c == (a `dot` c) + (b `dot` c) 
 
-testsTriIq :: TestTree
-testsTriIq = testProperty "Triangle Inequality"
+testsCSIeq :: TestTree
+testsCSIeq = testProperty "Cauchy–Schwarz inequality"
+    ( prop @V1 @Double .&&. 
+    prop @V2 @Double .&&. 
+    prop @V3 @Double .&&. 
+    prop @V4 @Double 
+    )
+  where
+    prop :: (Metric v, Floating a, Ord a) => v a -> v a -> Bool
+    prop a b = a `dot` b <= norm a * norm b
+
+testsTriIeq :: TestTree
+testsTriIeq = testProperty "Triangle Inequality"
     ( prop @V1 @Double .&&. 
     prop @V2 @Double .&&. 
     prop @V3 @Double .&&. 
@@ -55,8 +66,8 @@ testsTriIq = testProperty "Triangle Inequality"
   where
     prop :: (Metric v, Floating a, Ord a) => v a -> v a -> Bool
     prop a b =  norm (a ^+^ b) <= norm a + norm b
-testsInvTriIq :: TestTree
-testsInvTriIq = testProperty "Inverse Triangle Inequality"
+testsInvTriIeq :: TestTree
+testsInvTriIeq = testProperty "Inverse Triangle Inequality"
     ( prop @V1 @Double .&&. 
     prop @V2 @Double .&&. 
     prop @V3 @Double .&&. 
@@ -70,6 +81,7 @@ tests =
   [ testsDotSelf
   , testsDotCommut
   , testsDotDist
-  , testsTriIq
-  , testsInvTriIq
+  , testsCSIeq
+  , testsTriIeq
+  , testsInvTriIeq
   ]
