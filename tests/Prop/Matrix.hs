@@ -141,9 +141,7 @@ prop_m22invmult a b =
 
 tests :: [TestTree]
 tests =
-  [ testGroup
-      -- These tests don't rely on any specific size of matrix to function
-      "General Matrix Properties"
+  [ testGroup "General Matrix Properties" -- These tests don't rely on any specific size of matrix to function
       [ testGroup "Basic Properties" [
           testProperty "commutativity of !+! A!+!B=B!+!A" prop_AddCommut
         , testProperty "associativity of !+! (A!+!B)!+!C=A!+!(B!+!C)" prop_AddAssoc
@@ -172,4 +170,5 @@ tests =
       , testProperty "a !*! inv a == I" prop_m22invident
       , testProperty "(AB)^-1 == B^-1 * A^-1" prop_m22invmult
       ]
+    ]
   ]
