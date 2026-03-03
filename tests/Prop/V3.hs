@@ -3,10 +3,10 @@
 module Prop.V3 (tests) where
 
 import Linear.Metric (dot)
-import Linear.V3 (V3 (..), cross)
+import Linear.V3 (V3 (..), cross, triple)
 import Linear.Vector (zero, (*^), (^-^))
 import Test.QuickCheck (Arbitrary (..))
-import Test.Tasty (TestTree)
+import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck (testProperty)
 
 instance (Arbitrary a) => Arbitrary (V3 a) where
@@ -28,6 +28,13 @@ prop_vectortripleprod :: V3 Rational -> V3 Rational -> V3 Rational -> Bool
 prop_vectortripleprod a b c =
   (a `cross` (b `cross` c)) == ((a `dot` c) *^ b) ^-^ ((a `dot` b) *^ c)
 
+prop_builtintriplecircular :: V3 Rational -> V3 Rational -> V3 Rational -> Bool
+prop_builtintriplecircular a b c = triple a b c == triple b c a && triple a b c == triple c a b
+
+prop_builtintripleswapneg :: V3 Rational -> V3 Rational -> V3 Rational -> Bool
+prop_builtintripleswapneg a b c = foo == - triple a c b && foo == - triple b a c && foo == - triple c b a
+  where foo = triple a b c
+
 tests :: [TestTree]
 tests =
   [ testProperty "a x b == - (b x a)" prop_crossinv
@@ -35,4 +42,8 @@ tests =
   , testProperty "(a + b) x c == a x c + b x c" prop_distcross
   , testProperty "Scalar triple product" prop_scalartripleprod
   , testProperty "Vector triple product" prop_vectortripleprod
+  , testGroup "Builtin scalar triple product properties " [
+      testProperty "triple a b c = triple b c a = triple c a b" prop_builtintriplecircular
+    , testProperty "triple a b c = -triple a c b = -triple b a c = -triple c b a" prop_builtintripleswapneg
+  ]
   ]
