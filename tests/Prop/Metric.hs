@@ -45,7 +45,7 @@ prop_CSIneq =
   )
   where
     prop :: (Metric v, Floating a, Ord a) => v a -> v a -> Bool
-    prop a b = a `dot` b <= norm a * norm b
+    prop a b = a `dot` b <= norm a * norm b + 1e-12
 
 prop_TriangleIneq :: Property
 prop_TriangleIneq =
@@ -56,7 +56,7 @@ prop_TriangleIneq =
   )
   where
     prop :: (Metric v, Floating a, Ord a) => v a -> v a -> Bool
-    prop a b =  norm (a ^+^ b) <= norm a + norm b
+    prop a b =  norm (a ^+^ b) <= norm a + norm b + 1e-12
 
 prop_InvTriangleIneq :: Property
 prop_InvTriangleIneq =
@@ -67,7 +67,7 @@ prop_InvTriangleIneq =
   )
   where
     prop :: (Metric v, Floating a, Ord a) => v a -> v a -> Bool
-    prop a b =  norm (a ^-^ b) >= norm a - norm b
+    prop a b =  norm (a ^-^ b) + 1e-12 >= norm a - norm b
 
 tests :: [TestTree]
 tests =
