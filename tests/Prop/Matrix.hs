@@ -1,14 +1,25 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
 
 module Prop.Matrix (tests) where
 
 import Linear.Matrix (
   M22,
+  M33,
+  M44,
   Trace (trace),
   det22,
+  det33,
+  det44,
   identity,
   inv22,
+  inv33,
+  inv44,
   transpose,
   (!!*),
   (!*!),
@@ -98,6 +109,7 @@ prop_IdentityNeutralL = SQUAREMATRIX (prop)
  where
   prop :: (Eq (m (m a)), Additive m, Foldable m, Traversable m, Applicative m, Num a) => m (m a) -> Bool
   prop a = a !*! identity == a
+
 prop_IdentityNeutralR :: Property
 prop_IdentityNeutralR = SQUAREMATRIX (prop)
  where
@@ -130,24 +142,58 @@ prop_TraceSwap = SQUAREMATRIX (prop)
 
 -- 2x2 block
 
-prop_dettranspose_m22 :: M22 Rational -> Bool
-prop_dettranspose_m22 a = det22 (transpose a) == det22 a
+class (Num a) => Invertible m a | m -> a where
+  det :: m -> a
+  inv ::Fractional a => m -> m
 
-prop_detprod_m22 :: M22 Rational -> M22 Rational -> Bool
-prop_detprod_m22 a b = det22 (a !*! b) == det22 a * det22 b
+instance (Num a) => Invertible (M22 a) a where
+  det = det22
+  inv = inv22
 
-prop_detscalarpow_m22 :: M22 Rational -> Rational -> Bool
-prop_detscalarpow_m22 a c = det22 (c *!! a) == (c * c) * det22 a
+instance (Num a) => Invertible (M33 a) a where
+  det = det33
+  inv = inv33
 
-prop_inv_m22 :: M22 Rational -> Property
-prop_inv_m22 a = (det22 a /= 0) ==> inv22 (inv22 a) == a
+instance (Num a) => Invertible (M44 a) a where
+  det = det44
+  inv = inv44
 
-prop_invident_m22 :: M22 Rational -> Property
-prop_invident_m22 a = det22 a /= 0 ==> a !*! inv22 a == identity
+prop_dettranspose :: Property
+prop_dettranspose =  SQUAREMATRIX (prop)
+  where
+    prop :: (Additive m, Distributive m, Fractional a, Invertible (m (m a)) a, Eq a) => m(m a) -> Bool
+    prop a = det (transpose a) == det a
 
-prop_invmult_m22 :: M22 Rational -> M22 Rational -> Property
-prop_invmult_m22 a b =
-  det22 a /= 0 && det22 b /= 0 ==> (inv22 (a !*! b) == (inv22 b !*! inv22 a))
+prop_detprod :: Property
+prop_detprod =  SQUAREMATRIX (prop)
+  where
+    prop :: (Additive m, Foldable m, Fractional a, Invertible (m (m a)) a, Eq a) => m(m a) -> m(m a) -> Bool
+    prop a b = det (a !*! b) == det a * det b
+
+prop_detscalarpow :: Property
+prop_detscalarpow =  SQUAREMATRIX (prop)
+  where
+    prop :: (Additive m, Fractional a, Foldable m, Invertible (m (m a)) a, Eq a) => m(m a) -> a -> Bool
+    prop a c = det (c *!! a) == (c ^ n) * det a
+      where n = length a
+
+prop_inv :: Property
+prop_inv =  SQUAREMATRIX (prop)
+  where
+    prop :: (Additive m, Fractional a, Invertible (m (m a)) a, Eq (m(m a)), Eq a) => m(m a) -> Property
+    prop a = (det a /= 0) ==> inv (inv a) == a
+
+prop_invident :: Property
+prop_invident =  SQUAREMATRIX (prop)
+  where
+    prop :: (Additive m, Foldable m,Traversable m, Applicative m, Fractional a, Invertible (m (m a)) a, Eq (m(m a)), Eq a) => m(m a) -> Property
+    prop a = det a /= 0 ==> a !*! inv a == identity
+
+prop_invmult :: Property
+prop_invmult =  SQUAREMATRIX (prop)
+  where
+    prop :: (Additive m,Foldable m, Fractional a, Invertible (m (m a)) a, Eq a, Eq (m (m a))) => m(m a) -> m(m a) -> Property
+    prop a b = det a /= 0 && det b /= 0 ==> (inv (a !*! b) == (inv b !*! inv a))
 
 tests :: [TestTree]
 tests =
@@ -176,12 +222,12 @@ tests =
       ]
     ]
   , testGroup
-    "2x2 matrix"
-    [ testProperty "inv22 (inv22 a) == a" prop_inv_m22
-    , testProperty "a !*! inv a == I" prop_invident_m22
-    , testProperty "(AB)^-1 == B^-1 * A^-1" prop_invmult_m22
-    , testProperty "det A^T = det A" prop_dettranspose_m22
-    , testProperty "det (AB) = det A * det B" prop_detprod_m22
-    , testProperty "det (cA) = c^2 * det A" prop_detscalarpow_m22
+    "Square matrix"
+    [ testProperty "inv22 (inv22 a) == a" prop_inv
+    , testProperty "a !*! inv a == I" prop_invident
+    , testProperty "(AB)^-1 == B^-1 * A^-1" prop_invmult
+    , testProperty "det A^T = det A" prop_dettranspose
+    , testProperty "det (AB) = det A * det B" prop_detprod
+    , testProperty "det (cA) = c^2 * det A" prop_detscalarpow
     ]
   ]
