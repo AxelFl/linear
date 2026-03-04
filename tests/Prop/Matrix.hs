@@ -1,10 +1,14 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies #-}
+--{-# LANGUAGE TypeSynonymInstances #-}
+--{-# LANGUAGE FlexibleInstances  #-}
+--{-# LANGUAGE InstanceSigs #-}
+--{-# LANGUAGE MultiParamTypeClasses #-}
+--{-# LANGUAGE FunctionalDependencies #-}
+--{-# LANGUAGE TypeFamilies #-}
+--{-# LANGUAGE PolyKinds #-}
+
+{-# LANGUAGE KindSignatures #-}
 
 module Prop.Matrix (tests) where
 
@@ -38,6 +42,7 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck (testProperty)
 
 import Data.Distributive (Distributive)
+import Data.Kind(Type)
 
 #define SQUAREMATRIX(testname) \
   testname @V2 @Rational .&&. \
@@ -140,59 +145,57 @@ prop_TraceSwap = SQUAREMATRIX (prop)
   prop :: (Foldable m, Trace m, Additive m, Eq a, Num a) => m (m a) -> m (m a) -> Bool
   prop a b = trace (a !*! b) == trace (b !*! a)
 
--- 2x2 block
+class (Functor m) => Invertible m where
+  det :: Num a => m (m a) -> a
+  inv :: Fractional a => m (m a) -> m (m a) 
 
-class (Num a) => Invertible m a | m -> a where
-  det :: m -> a
-  inv ::Fractional a => m -> m
-
-instance (Num a) => Invertible (M22 a) a where
+instance Invertible V2 where
   det = det22
   inv = inv22
 
-instance (Num a) => Invertible (M33 a) a where
+instance Invertible V3 where
   det = det33
   inv = inv33
 
-instance (Num a) => Invertible (M44 a) a where
+instance Invertible V4 where
   det = det44
   inv = inv44
 
 prop_dettranspose :: Property
 prop_dettranspose =  SQUAREMATRIX (prop)
   where
-    prop :: (Additive m, Distributive m, Fractional a, Invertible (m (m a)) a, Eq a) => m(m a) -> Bool
+    prop :: (Additive m, Distributive m, Fractional a, Invertible m, Eq a) => m(m a) -> Bool
     prop a = det (transpose a) == det a
 
 prop_detprod :: Property
 prop_detprod =  SQUAREMATRIX (prop)
   where
-    prop :: (Additive m, Foldable m, Fractional a, Invertible (m (m a)) a, Eq a) => m(m a) -> m(m a) -> Bool
+    prop :: (Additive m, Foldable m, Fractional a, Invertible m, Eq a) => m(m a) -> m(m a) -> Bool
     prop a b = det (a !*! b) == det a * det b
 
 prop_detscalarpow :: Property
 prop_detscalarpow =  SQUAREMATRIX (prop)
   where
-    prop :: (Additive m, Fractional a, Foldable m, Invertible (m (m a)) a, Eq a) => m(m a) -> a -> Bool
+    prop :: (Additive m, Fractional a, Foldable m, Invertible m, Eq a) => m(m a) -> a -> Bool
     prop a c = det (c *!! a) == (c ^ n) * det a
       where n = length a
 
 prop_inv :: Property
 prop_inv =  SQUAREMATRIX (prop)
   where
-    prop :: (Additive m, Fractional a, Invertible (m (m a)) a, Eq (m(m a)), Eq a) => m(m a) -> Property
+    prop :: (Additive m, Fractional a, Invertible m, Eq (m(m a)), Eq a) => m(m a) -> Property
     prop a = (det a /= 0) ==> inv (inv a) == a
 
 prop_invident :: Property
 prop_invident =  SQUAREMATRIX (prop)
   where
-    prop :: (Additive m, Foldable m,Traversable m, Applicative m, Fractional a, Invertible (m (m a)) a, Eq (m(m a)), Eq a) => m(m a) -> Property
+    prop :: (Additive m, Foldable m,Traversable m, Applicative m, Fractional a, Invertible m, Eq (m(m a)), Eq a) => m(m a) -> Property
     prop a = det a /= 0 ==> a !*! inv a == identity
 
 prop_invmult :: Property
 prop_invmult =  SQUAREMATRIX (prop)
   where
-    prop :: (Additive m,Foldable m, Fractional a, Invertible (m (m a)) a, Eq a, Eq (m (m a))) => m(m a) -> m(m a) -> Property
+    prop :: (Additive m,Foldable m, Fractional a, Invertible m, Eq a, Eq (m (m a))) => m(m a) -> m(m a) -> Property
     prop a b = det a /= 0 && det b /= 0 ==> (inv (a !*! b) == (inv b !*! inv a))
 
 tests :: [TestTree]
