@@ -137,7 +137,7 @@ prop_detprod_m22 :: M22 Rational -> M22 Rational -> Bool
 prop_detprod_m22 a b = det22 (a !*! b) == det22 a * det22 b
 
 prop_detscalarpow_m22 :: M22 Rational -> Rational -> Bool
-prop_detscalarpow_m22 a c = det22 (c *!! a) == (c^2) * det22 a
+prop_detscalarpow_m22 a c = det22 (c *!! a) == (c * c) * det22 a
 
 prop_inv_m22 :: M22 Rational -> Property
 prop_inv_m22 a = (det22 a /= 0) ==> inv22 (inv22 a) == a
@@ -148,9 +148,10 @@ prop_invident_m22 a = det22 a /= 0 ==> a !*! inv22 a == identity
 prop_invmult_m22 :: M22 Rational -> M22 Rational -> Property
 prop_invmult_m22 a b =
   det22 a /= 0 && det22 b /= 0 ==> (inv22 (a !*! b) == (inv22 b !*! inv22 a))
+
 tests :: [TestTree]
 tests =
-  [ testGroup "General Matrix Properties" -- These tests don't rely on any specific size of matrix to function
+  [ testGroup "General Matrix Properties"  -- These tests don't rely on any specific size of matrix to function
     [ testGroup "Basic Properties" [
           testProperty "Commutativity of !+! A+B=B+A" prop_AddCommut
         , testProperty "Associativity of !+! (A+B)+C=A+(B+C)" prop_AddAssoc
@@ -167,12 +168,12 @@ tests =
       , testGroup "Identity Properties" [
           testProperty "identity is neutral under !*! AI=A" prop_IdentityNeutralR
         , testProperty "identity is neutral under !*! IA=A" prop_IdentityNeutralL
+        ]
       , testGroup "Trace Properties" [
           testProperty "trace (A+B) == trace A + trace B" prop_TraceLinear
         , testProperty "trace A == trace (A^T)" prop_TraceTranspose
         , testProperty "trace (AB) == trace (BA)" prop_TraceSwap
         ]
-      ]
     ]
   , testGroup
       "2x2 matrix"
