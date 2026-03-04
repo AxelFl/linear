@@ -152,36 +152,36 @@ prop_invmult_m22 a b =
 tests :: [TestTree]
 tests =
   [ testGroup "General Matrix Properties"  -- These tests don't rely on any specific size of matrix to function
-    [ testGroup "Basic Properties" [
-          testProperty "Commutativity of !+! A+B=B+A" prop_AddCommut
-        , testProperty "Associativity of !+! (A+B)+C=A+(B+C)" prop_AddAssoc
-        , testProperty "Associativity of !*! (AB)C=A(BC)" prop_MulAssoc
-        , testProperty "Distributivity of Matrix A(B+C) = AB+AC" prop_DistOfMatrix 
-        , testProperty "Distributivity of Scalar a(B+C) = aB+aC" prop_DistOfScalar
-        , testProperty "Left and right scalar product are equal Ab=bA" prop_LRScalar
-        ]
-        , testGroup "Transpose Properties" [
-          testProperty "(a^T)^T == a" prop_Transpose
-        , testProperty "(A+B)^T == (A^T + B^T)" prop_TransposeDistAdd
-        , testProperty "(AB)^T == (B^T A^T)" prop_TransposeDistMul
-        ]
-      , testGroup "Identity Properties" [
-          testProperty "identity is neutral under !*! AI=A" prop_IdentityNeutralR
-        , testProperty "identity is neutral under !*! IA=A" prop_IdentityNeutralL
-        ]
-      , testGroup "Trace Properties" [
-          testProperty "trace (A+B) == trace A + trace B" prop_TraceLinear
-        , testProperty "trace A == trace (A^T)" prop_TraceTranspose
-        , testProperty "trace (AB) == trace (BA)" prop_TraceSwap
-        ]
+    [ testGroup "Basic Properties"
+      [ testProperty "Commutativity of !+! A+B=B+A" prop_AddCommut
+      , testProperty "Associativity of !+! (A+B)+C=A+(B+C)" prop_AddAssoc
+      , testProperty "Associativity of !*! (AB)C=A(BC)" prop_MulAssoc
+      , testProperty "Distributivity of Matrix A(B+C) = AB+AC" prop_DistOfMatrix
+      , testProperty "Distributivity of Scalar a(B+C) = aB+aC" prop_DistOfScalar
+      , testProperty "Left and right scalar product are equal Ab=bA" prop_LRScalar
+      ]
+    , testGroup "Transpose Properties"
+      [ testProperty "(a^T)^T == a" prop_Transpose
+      , testProperty "(A+B)^T == (A^T + B^T)" prop_TransposeDistAdd
+      , testProperty "(AB)^T == (B^T A^T)" prop_TransposeDistMul
+      ]
+    , testGroup "Identity Properties"
+      [ testProperty "identity is neutral under !*! AI=A" prop_IdentityNeutralR
+      , testProperty "identity is neutral under !*! IA=A" prop_IdentityNeutralL
+      ]
+    , testGroup "Trace Properties"
+      [ testProperty "trace (A+B) == trace A + trace B" prop_TraceLinear
+      , testProperty "trace A == trace (A^T)" prop_TraceTranspose
+      , testProperty "trace (AB) == trace (BA)" prop_TraceSwap
+      ]
     ]
   , testGroup
-      "2x2 matrix"
-      [ testProperty "inv22 (inv22 a) == a" prop_inv_m22
-      , testProperty "a !*! inv a == I" prop_invident_m22
-      , testProperty "(AB)^-1 == B^-1 * A^-1" prop_invmult_m22
-      , testProperty "det A^T = det A" prop_dettranspose_m22
-      , testProperty "det (AB) = det A * det B" prop_detprod_m22
-      , testProperty "det (cA) = c^2 * det A" prop_detscalarpow_m22
-      ]
+    "2x2 matrix"
+    [ testProperty "inv22 (inv22 a) == a" prop_inv_m22
+    , testProperty "a !*! inv a == I" prop_invident_m22
+    , testProperty "(AB)^-1 == B^-1 * A^-1" prop_invmult_m22
+    , testProperty "det A^T = det A" prop_dettranspose_m22
+    , testProperty "det (AB) = det A * det B" prop_detprod_m22
+    , testProperty "det (cA) = c^2 * det A" prop_detscalarpow_m22
+    ]
   ]
