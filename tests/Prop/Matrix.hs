@@ -42,7 +42,7 @@ import Data.Distributive (Distributive)
   testname @V4 @V3 @Rational .&&. \
   testname @V4 @V4 @Rational
 
--- General block
+-- Properties of general matrices
 prop_Transpose :: Property
 prop_Transpose = ALLMATRIX (prop)
  where
@@ -67,17 +67,24 @@ prop_AddAssoc = ALLMATRIX (prop)
   prop :: (Eq (m (n a)), Additive m, Additive n, Num a) => m (n a) -> m (n a) -> m (n a) -> Bool
   prop a b c = ((a !+! b) !+! c) == (a !+! (b !+! c))
 
-prop_MulAssoc :: Property
-prop_MulAssoc = SQUAREMATRIX (prop)
- where
-  prop :: (Eq (m (m a)), Additive m, Foldable m, Num a) => m (m a) -> m (m a) -> m (m a) -> Bool
-  prop a b c = ((a !*! b) !*! c) == (a !*! (b !*! c))
-
 prop_AddCommut :: Property
 prop_AddCommut = ALLMATRIX (prop)
  where
   prop :: (Eq (m (n a)), Additive m, Additive n, Num a) => m (n a) -> m (n a) -> Bool
   prop a b = (a !+! b) == (b !+! a)
+
+prop_LRScalar :: Property
+prop_LRScalar = ALLMATRIX (prop)
+ where
+  prop :: (Functor m, Functor n, Num a, Eq (m (n a))) => m (n a) -> a -> Bool
+  prop m a = m !!* a == a *!! m
+
+-- Properties of square matrices
+prop_MulAssoc :: Property
+prop_MulAssoc = SQUAREMATRIX (prop)
+ where
+  prop :: (Eq (m (m a)), Additive m, Foldable m, Num a) => m (m a) -> m (m a) -> m (m a) -> Bool
+  prop a b c = ((a !*! b) !*! c) == (a !*! (b !*! c))
 
 prop_DistOfMatrix:: Property
 prop_DistOfMatrix = SQUAREMATRIX (prop)
@@ -114,12 +121,6 @@ prop_TraceTranspose = SQUAREMATRIX (prop)
  where
   prop :: (Trace m, Distributive m, Num a, Eq a) => m (m a) -> Bool
   prop a = trace a == trace (transpose a)
-
-prop_LRScalar :: Property
-prop_LRScalar = ALLMATRIX (prop)
- where
-  prop :: (Functor m, Functor n, Num a, Eq (m (n a))) => m (n a) -> a -> Bool
-  prop m a = m !!* a == a *!! m
 
 prop_TraceSwap :: Property
 prop_TraceSwap = SQUAREMATRIX (prop)
@@ -164,13 +165,13 @@ prop_invmult =  SQUAREMATRIX (prop)
     prop :: (Additive m, Foldable m, Fractional a, InvertibleMatrix m, Eq a, Eq (m (m a))) => m (m a) -> m (m a) -> Property
     prop a b = det a /= 0 && det b /= 0 ==> (inv (a !*! b) == (inv b !*! inv a))
 
+-- TODO A lot of these are in the wrong branch where we only test them on square matrices
 tests :: [TestTree]
 tests =
   [ testGroup "General Matrix Properties"  -- These tests don't rely on any specific size of matrix to function
     [ testGroup "Basic Properties"
       [ testProperty "Commutativity of !+! A+B=B+A" prop_AddCommut
       , testProperty "Associativity of !+! (A+B)+C=A+(B+C)" prop_AddAssoc
-      , testProperty "Associativity of !*! (AB)C=A(BC)" prop_MulAssoc
       , testProperty "Distributivity of Matrix A(B+C) = AB+AC" prop_DistOfMatrix
       , testProperty "Distributivity of Scalar a(B+C) = aB+aC" prop_DistOfScalar
       , testProperty "Left and right scalar product are equal Ab=bA" prop_LRScalar
@@ -192,7 +193,8 @@ tests =
     ]
   , testGroup
     "Square matrix"
-    [ testProperty "inv (inv a) == a" prop_inv
+    [ testProperty "Associativity of !*! (AB)C=A(BC)" prop_MulAssoc
+    , testProperty "inv (inv a) == a" prop_inv
     , testProperty "a !*! inv a == I" prop_invident
     , testProperty "(AB)^-1 == B^-1 * A^-1" prop_invmult
     , testProperty "det A^T = det A" prop_dettranspose
