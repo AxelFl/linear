@@ -4,8 +4,13 @@
 module Prop.Matrix (tests) where
 
 import Linear.Matrix (
-  InvertibleMatrix (..),
+  M22,
+  M33,
+  M44,
   Trace (trace),
+  det22,
+  det33,
+  det44,
   identity,
   transpose,
   (!!*),
@@ -107,11 +112,13 @@ prop_LRScalar = ALLMATRIX (prop)
 prop_MulAssoc :: Property
 prop_MulAssoc = SQUAREMATRIX (prop)
  where
-  prop :: (Eq (m (m a)), Additive m, Foldable m, Num a) => m (m a) -> m (m a) -> m (m a) -> Bool
+  prop :: (Eq (m (m a)), Additive m, Foldable m, Num a)
+    => m (m a) -> m (m a) -> m (m a) -> Bool
   prop a b c = ((a !*! b) !*! c) == (a !*! (b !*! c))
 
-prop_DistOfMatrix:: Property
+prop_DistOfMatrix :: Property
 prop_DistOfMatrix = SQUAREMATRIX (prop)
+<<<<<<< HEAD
   where 
     prop:: (Eq (m (m a)), Additive m, Foldable m, Num a) => m (m a) -> m (m a) -> m (m a) -> Bool
     prop a b c = (a !*! (b !+! c)) == ((a !*! b) !+! (a !*! c)) 
@@ -132,6 +139,13 @@ prop_DistOfMatrix = SQUAREMATRIX (prop)
     => m (m a) -> m (m a) -> m (m a) -> Bool
   prop a b c = (a !*! (b !+! c)) == ((a !*! b) !+! (a !*! c))
 
+=======
+ where
+  prop :: (Eq (m (m a)), Additive m, Foldable m, Num a)
+    => m (m a) -> m (m a) -> m (m a) -> Bool
+  prop a b c = (a !*! (b !+! c)) == ((a !*! b) !+! (a !*! c))
+
+>>>>>>> ad2d936 (Try to break up some super long lines)
 prop_DistOfScalar :: Property
 prop_DistOfScalar = SQUAREMATRIX (prop)
  where
@@ -225,22 +239,42 @@ prop_invmult = SQUAREMATRIX (prop)
 -- TODO A lot of these are in the wrong branch where we only test them on square matrices
 tests :: [TestTree]
 tests =
-  [ testGroup "General Matrix Properties"  -- These tests don't rely on any specific size of matrix to function
-    [ testGroup "Basic Properties"
-      [ testProperty "Commutativity of !+! A+B=B+A" prop_AddCommut
-      , testProperty "Associativity of !+! (A+B)+C=A+(B+C)" prop_AddAssoc
-      , testProperty "Distributivity of Matrix A(B+C) = AB+AC" prop_DistOfMatrix
-      , testProperty "Distributivity of Scalar a(B+C) = aB+aC" prop_DistOfScalar
-      , testProperty "Left and right scalar product are equal Ab=bA" prop_LRScalar
+  [ testGroup
+      "General Matrix Properties" -- These tests don't rely on any specific size of matrix to function
+      [ testGroup
+          "Basic Properties"
+          [ testProperty "Commutativity of !+! A+B=B+A" prop_AddCommut
+          , testProperty "Associativity of !+! (A+B)+C=A+(B+C)" prop_AddAssoc
+          , testProperty "Distributivity of Matrix A(B+C) = AB+AC" prop_DistOfMatrix
+          , testProperty "Distributivity of Scalar a(B+C) = aB+aC" prop_DistOfScalar
+          , testProperty "Left and right scalar product are equal Ab=bA" prop_LRScalar
+          ]
+      , testGroup
+          "Transpose Properties"
+          [ testProperty "(a^T)^T == a" prop_Transpose
+          , testProperty "(A+B)^T == (A^T + B^T)" prop_TransposeDistAdd
+          , testProperty "(AB)^T == (B^T A^T)" prop_TransposeDistMul
+          ]
+      , testGroup
+          "Identity Properties"
+          [ testProperty "identity is neutral under !*! AI=A" prop_IdentityNeutralR
+          , testProperty "identity is neutral under !*! IA=A" prop_IdentityNeutralL
+          ]
+      , testGroup
+          "Trace Properties"
+          [ testProperty "trace (A+B) == trace A + trace B" prop_TraceLinear
+          , testProperty "trace A == trace (A^T)" prop_TraceTranspose
+          , testProperty "trace (AB) == trace (BA)" prop_TraceSwap
+          ]
       ]
   , testGroup
-    "Square matrix"
-    [ testProperty "Associativity of !*! (AB)C=A(BC)" prop_MulAssoc
-    , testProperty "inv (inv a) == a" prop_inv
-    , testProperty "a !*! inv a == I" prop_invident
-    , testProperty "(AB)^-1 == B^-1 * A^-1" prop_invmult
-    , testProperty "det A^T = det A" prop_dettranspose
-    , testProperty "det (AB) = det A * det B" prop_detprod
-    , testProperty "det (cA) = c^2 * det A" prop_detscalarpow
-    ]
+      "Square matrix"
+      [ testProperty "Associativity of !*! (AB)C=A(BC)" prop_MulAssoc
+      , testProperty "inv (inv a) == a" prop_inv
+      , testProperty "a !*! inv a == I" prop_invident
+      , testProperty "(AB)^-1 == B^-1 * A^-1" prop_invmult
+      , testProperty "det A^T = det A" prop_dettranspose
+      , testProperty "det (AB) = det A * det B" prop_detprod
+      , testProperty "det (cA) = c^2 * det A" prop_detscalarpow
+      ]
   ]
