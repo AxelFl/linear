@@ -20,5 +20,5 @@ prop_UnangleInverse a = nearZero ((unangle . angle) a - a)
 tests :: [TestTree]
 tests =
   [ testProperty "4 perpendicular is unchanged" prop_QuadPerp
-  , testProperty "Unangle is inverse of angle" $ forAll (choose (-pi / 2 , 5/4 * pi - 1e-12 )) prop_UnangleInverse
+  , testProperty "Unangle is inverse of angle" $ forAll (choose (-pi / 2 , 3/2 * pi - 1e-10 )) prop_UnangleInverse
   ]
