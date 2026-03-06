@@ -25,14 +25,14 @@ import Test.Tasty.QuickCheck (testProperty)
   testname @V3 @Rational .&&. \
   testname @V4 @Rational
 
-prop_AddAssoc :: Property
-prop_AddAssoc = ALLVECTORS (prop)
+prop_addAssoc :: Property
+prop_addAssoc = ALLVECTORS (prop)
  where
   prop :: (Eq (v a), Additive v, Num a) => v a -> v a -> v a -> Bool
   prop a b c = ((a ^+^ b) ^+^ c) == (a ^+^ (b ^+^ c))
 
-prop_AddCommut :: Property
-prop_AddCommut = ALLVECTORS (prop)
+prop_addCommut :: Property
+prop_addCommut = ALLVECTORS (prop)
  where
   prop :: (Eq (v a), Additive v, Num a) => v a -> v a -> Bool
   prop a b = (a ^+^ b) == (b ^+^ a)
@@ -43,30 +43,30 @@ prop_LRScalarProduct = ALLVECTORS (prop)
   prop :: (Eq (v a), Functor v, Num a) => v a -> a -> Bool
   prop v a = v ^* a == a *^ v
 
-prop_DistScalarR :: Property
-prop_DistScalarR = ALLVECTORS (prop)
+prop_distScalarR :: Property
+prop_distScalarR = ALLVECTORS (prop)
  where
   prop :: (Eq (v a), Additive v, Num a) => v a -> v a -> a -> Bool
   prop a b c = (a ^+^ b) ^* c == (a ^* c) ^+^ (b ^* c)
 
-prop_DistScalarL :: Property
-prop_DistScalarL = ALLVECTORS (prop)
+prop_distScalarL :: Property
+prop_distScalarL = ALLVECTORS (prop)
  where
   prop :: (Eq (v a), Additive v, Num a) => v a -> v a -> a -> Bool
   prop a b c = c *^ (a ^+^ b) == (c *^ a) ^+^ (c *^ b)
 
-prop_NegateVector :: Property
-prop_NegateVector = ALLVECTORS (prop)
+prop_negateVector :: Property
+prop_negateVector = ALLVECTORS (prop)
  where
   prop :: (Eq (v a), Additive v, Num a) => v a -> Bool
   prop a = (a ^+^ negated a) == zero
 
 tests :: [TestTree]
 tests =
-  [ testProperty "Left and right scalar product are equal" prop_LRScalarProduct
-  , testProperty "Right scalar are distributive over vector addition" prop_DistScalarR
-  , testProperty "Left scalar are distributive over vector addition" prop_DistScalarL
-  , testProperty "Negation is inverse under ^+^" prop_NegateVector
-  , testProperty "associativity of ^+^" prop_AddAssoc
-  , testProperty "commutativity of ^+^" prop_AddCommut
+  [ testProperty "left and right scalar product are equal" prop_LRScalarProduct
+  , testProperty "right scalar mult is distributive over vector addition" prop_distScalarR
+  , testProperty "left scalar mult is distributive over vector addition" prop_distScalarL
+  , testProperty "negation is inverse under ^+^" prop_negateVector
+  , testProperty "associativity of ^+^" prop_addAssoc
+  , testProperty "commutativity of ^+^" prop_addCommut
   ]

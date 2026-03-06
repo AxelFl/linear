@@ -11,14 +11,14 @@ import Test.QuickCheck (Arbitrary (..), forAll, choose)
 instance (Arbitrary a) => Arbitrary (V2 a) where
   arbitrary = V2 <$> arbitrary <*> arbitrary
 
-prop_QuadPerp :: V2 Rational -> Bool
-prop_QuadPerp a = (perp . perp . perp . perp) a == a
+prop_quadPerp :: V2 Rational -> Bool
+prop_quadPerp a = (perp . perp . perp . perp) a == a
 
-prop_UnangleInverse :: Double -> Bool
-prop_UnangleInverse a = nearZero ((unangle . angle) a - a)
+prop_unangleInverse :: Double -> Bool
+prop_unangleInverse a = nearZero ((unangle . angle) a - a)
 
 tests :: [TestTree]
 tests =
-  [ testProperty "4 perpendicular is unchanged" prop_QuadPerp
-  , testProperty "Unangle is inverse of angle" $ forAll (choose (-pi / 2 , 3/2 * pi - 1e-10 )) prop_UnangleInverse
+  [ testProperty "4 perpendicular is unchanged" prop_quadPerp
+  , testProperty "unangle is inverse of angle" $ forAll (choose (-pi / 2 , 3/2 * pi - 1e-10 )) prop_unangleInverse
   ]

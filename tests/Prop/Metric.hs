@@ -23,14 +23,14 @@ import Test.Tasty.QuickCheck (testProperty)
   prop @V3 @Rational .&&. \
   prop @V4 @Rational
 
-prop_DotCommut :: Property
-prop_DotCommut = ALLVECTORS (prop)
+prop_dotCommut :: Property
+prop_dotCommut = ALLVECTORS (prop)
  where
   prop :: (Metric v, Num a, Eq a) => v a -> v a -> Bool
   prop a b = a `dot` b == b `dot` a
 
-prop_DotDist :: Property
-prop_DotDist = ALLVECTORS (prop)
+prop_dotDist :: Property
+prop_dotDist = ALLVECTORS (prop)
  where
   prop :: (Metric v, Num a, Eq a) => v a -> v a -> v a -> Bool
   prop a b c = (a ^+^ b) `dot` c == (a `dot` c) + (b `dot` c)
@@ -45,8 +45,8 @@ prop_CSIneq =
   prop :: (Metric v, Floating a, Ord a) => v a -> v a -> Bool
   prop a b = a `dot` b <= norm a * norm b + 1e-12
 
-prop_TriangleIneq :: Property
-prop_TriangleIneq =
+prop_triangleIneq :: Property
+prop_triangleIneq =
   prop @V1 @Double
     .&&. prop @V2 @Double
     .&&. prop @V3 @Double
@@ -55,8 +55,8 @@ prop_TriangleIneq =
   prop :: (Metric v, Floating a, Ord a) => v a -> v a -> Bool
   prop a b = norm (a ^+^ b) <= norm a + norm b + 1e-12
 
-prop_InvTriangleIneq :: Property
-prop_InvTriangleIneq =
+prop_invTriangleIneq :: Property
+prop_invTriangleIneq =
   prop @V1 @Double
     .&&. prop @V2 @Double
     .&&. prop @V3 @Double
@@ -67,9 +67,9 @@ prop_InvTriangleIneq =
 
 tests :: [TestTree]
 tests =
-  [ testProperty "Commutativity of scalar product" prop_DotCommut
-  , testProperty "Distributivity of scalar product over addition" prop_DotDist
+  [ testProperty "commutativity of scalar product" prop_dotCommut
+  , testProperty "distributivity of scalar product over addition" prop_dotDist
   , testProperty "Cauchy–Schwarz inequality" prop_CSIneq
-  , testProperty "Triangle Inequality" prop_TriangleIneq
-  , testProperty "Inverse Triangle Inequality" prop_InvTriangleIneq
+  , testProperty "triangle Inequality" prop_triangleIneq
+  , testProperty "inverse Triangle Inequality" prop_invTriangleIneq
   ]
