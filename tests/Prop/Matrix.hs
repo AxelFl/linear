@@ -44,74 +44,41 @@ import Data.Distributive (Distributive)
   testname @V4 @V3 @Rational .&&. \
   testname @V4 @V4 @Rational
 
-class InvertibleMatrix m where
+class SquareMatrix m where
   det :: Num a => m (m a) -> a
   inv :: Fractional a => m (m a) -> m (m a)
 
-instance InvertibleMatrix V2 where
+instance SquareMatrix V2 where
   det = det22
   inv = inv22
 
-instance InvertibleMatrix V3 where
+instance SquareMatrix V3 where
   det = det33
   inv = inv33
 
-instance InvertibleMatrix V4 where
+instance SquareMatrix V4 where
   det = det44
   inv = inv44
 
 -- Properties of general matrices
-prop_Transpose :: Property
-prop_Transpose = ALLMATRIX (prop)
+prop_addCommut :: Property
+prop_addCommut = ALLMATRIX (prop)
  where
-  prop :: (Eq (m (n a)), Distributive m, Distributive n) => m (n a) -> Bool
-  prop a = transpose (transpose a) == a
+  prop :: (Eq (m (n a)), Additive m, Additive n, Num a) => m (n a) -> m (n a) -> Bool
+  prop a b = (a !+! b) == (b !+! a)
 
-prop_TransposeDistAdd :: Property
-prop_TransposeDistAdd = ALLMATRIX (prop)
- where
-  prop ::
-    ( Eq (n (m a))
-    , Additive m
-    , Distributive m
-    , Distributive n
-    , Additive n
-    , Num a
-    ) =>
-    m (n a) ->
-    m (n a) ->
-    Bool
-  prop a b = transpose (a !+! b) == (transpose a !+! transpose b)
-
-prop_TransposeDistMul :: Property
-prop_TransposeDistMul = prop @V2 @V2 @Rational .&&. prop @V2 @V2 @Rational
- where
-  prop ::
-    ( Additive m
-    , Foldable m
-    , Distributive m
-    , Distributive n
-    , Foldable n
-    , Additive n
-    , Num a
-    , Eq (m (m a))
-    ) =>
-    m (n a) ->
-    n (m a) ->
-    Bool
-  prop a b = transpose (a !*! b) == (transpose b !*! transpose a)
-
-prop_AddAssoc :: Property
-prop_AddAssoc = ALLMATRIX (prop)
+prop_addAssoc :: Property
+prop_addAssoc = ALLMATRIX (prop)
  where
   prop :: (Eq (m (n a)), Additive m, Additive n, Num a) => m (n a) -> m (n a) -> m (n a) -> Bool
   prop a b c = ((a !+! b) !+! c) == (a !+! (b !+! c))
 
-prop_AddCommut :: Property
-prop_AddCommut = ALLMATRIX (prop)
+prop_distOfScalar :: Property
+prop_distOfScalar = ALLMATRIX (prop)
  where
-  prop :: (Eq (m (n a)), Additive m, Additive n, Num a) => m (n a) -> m (n a) -> Bool
-  prop a b = (a !+! b) == (b !+! a)
+  prop :: (Eq (m (n a)), Additive m, Additive n, Foldable m, Num a)
+    => a -> m (n a) -> m (n a) -> Bool
+  prop a b c = a *!! (b !+! c) == ((a *!! b) !+! (a *!! c))
 
 prop_LRScalar :: Property
 prop_LRScalar = ALLMATRIX (prop)
@@ -119,150 +86,168 @@ prop_LRScalar = ALLMATRIX (prop)
   prop :: (Functor m, Functor n, Num a, Eq (m (n a))) => m (n a) -> a -> Bool
   prop m a = m !!* a == a *!! m
 
+-- Transpose properties
+prop_transpose :: Property
+prop_transpose = ALLMATRIX (prop)
+ where
+  prop :: (Eq (m (n a)), Distributive m, Distributive n) => m (n a) -> Bool
+  prop a = transpose (transpose a) == a
+
+prop_transposeDistAdd :: Property
+prop_transposeDistAdd = ALLMATRIX (prop)
+ where
+  prop :: ( Eq (n (m a)), Additive m, Distributive m, Distributive n,
+    Additive n , Num a)
+    => m (n a) -> m (n a) -> Bool
+  prop a b = transpose (a !+! b) == (transpose a !+! transpose b)
+
+prop_transposeDistMul :: Property
+prop_transposeDistMul = ALLMATRIX (prop)
+ where
+  prop :: ( Additive m, Foldable m, Distributive m, Distributive n, Foldable n
+    , Additive n, Num a, Eq (m (m a)))
+    => m (n a) -> n (m a) -> Bool
+  prop a b = transpose (a !*! b) == (transpose b !*! transpose a)
+
+prop_IdentityNeutralL :: Property
+prop_IdentityNeutralL = ALLMATRIX (prop)
+ where
+  prop :: ( Eq (m (n a)), Functor m, Additive n, Traversable n, Applicative n, Num a)
+    => m (n a) -> Bool
+  prop a = a !*! identity == a
+
+prop_IdentityNeutralR :: Property
+prop_IdentityNeutralR = ALLMATRIX (prop)
+ where
+  prop :: ( Eq (m (n a)), Additive m, Foldable m, Traversable m,
+    Applicative m, Additive n, Num a)
+    => m (n a) -> Bool
+  prop a = identity !*! a == a
+
 -- Properties of square matrices
-prop_MulAssoc :: Property
-prop_MulAssoc = SQUAREMATRIX (prop)
+prop_mulAssoc :: Property
+prop_mulAssoc = SQUAREMATRIX (prop)
  where
   prop :: (Eq (m (m a)), Additive m, Foldable m, Num a)
     => m (m a) -> m (m a) -> m (m a) -> Bool
   prop a b c = ((a !*! b) !*! c) == (a !*! (b !*! c))
 
-prop_DistOfMatrix :: Property
-prop_DistOfMatrix = SQUAREMATRIX (prop)
+prop_distOfMatrix :: Property
+prop_distOfMatrix = SQUAREMATRIX (prop)
  where
   prop :: (Eq (m (m a)), Additive m, Foldable m, Num a)
     => m (m a) -> m (m a) -> m (m a) -> Bool
   prop a b c = (a !*! (b !+! c)) == ((a !*! b) !+! (a !*! c))
 
-prop_DistOfScalar :: Property
-prop_DistOfScalar = SQUAREMATRIX (prop)
+-- Inverse properties
+prop_inv :: Property
+prop_inv = SQUAREMATRIX (prop)
  where
-  prop :: (Eq (m (m a)), Additive m, Foldable m, Num a)
-    => a -> m (m a) -> m (m a) -> Bool
-  prop a b c = a *!! (b !+! c) == ((a *!! b) !+! (a *!! c))
+  prop :: (Additive m, Fractional a, SquareMatrix m, Eq (m (m a)), Eq a)
+    => m (m a) -> Property
+  prop a = (det a /= 0) ==> inv (inv a) == a
 
-prop_IdentityNeutralL :: Property
-prop_IdentityNeutralL = SQUAREMATRIX (prop)
+prop_invIdent :: Property
+prop_invIdent = SQUAREMATRIX (prop)
  where
-  prop ::
-    ( Eq (m (m a)) , Additive m , Foldable m , Traversable m , Applicative m , Num a)
-    =>  m (m a) -> Bool
-  prop a = a !*! identity == a
+  prop :: ( Additive m, Foldable m, Traversable m, Applicative m, Fractional a
+    , SquareMatrix m, Eq (m (m a)), Eq a )
+    => m (m a) -> Property
+  prop a = det a /= 0 ==> a !*! inv a == identity
 
-prop_IdentityNeutralR :: Property
-prop_IdentityNeutralR = SQUAREMATRIX (prop)
+prop_invMult :: Property
+prop_invMult = SQUAREMATRIX (prop)
  where
-  prop ::
-    ( Eq (m (m a)) , Additive m , Foldable m , Traversable m , Applicative m , Num a)
-    => m (m a) -> Bool
-  prop a = identity !*! a == a
+  prop :: ( Additive m, Foldable m, Fractional a, SquareMatrix m, Eq a, Eq (m (m a)))
+    => m (m a) -> m (m a) -> Property
+  prop a b = det a /= 0 && det b /= 0 ==> (inv (a !*! b) == (inv b !*! inv a))
 
-prop_TraceLinear :: Property
-prop_TraceLinear = SQUAREMATRIX (prop)
+-- Determinant properties
+prop_detTranspose :: Property
+prop_detTranspose = SQUAREMATRIX (prop)
  where
-  prop :: (Trace m, Additive m, Num a, Eq a) => m (m a) -> m (m a) -> Bool
-  prop a b = trace (a !+! b) == (trace a + trace b)
-
-prop_TraceTranspose :: Property
-prop_TraceTranspose = SQUAREMATRIX (prop)
- where
-  prop :: (Trace m, Distributive m, Num a, Eq a) => m (m a) -> Bool
-  prop a = trace a == trace (transpose a)
-
-prop_TraceSwap :: Property
-prop_TraceSwap = SQUAREMATRIX (prop)
- where
-  prop :: (Foldable m, Trace m, Additive m, Eq a, Num a)
-    => m (m a) -> m (m a) -> Bool
-  prop a b = trace (a !*! b) == trace (b !*! a)
-
-prop_dettranspose :: Property
-prop_dettranspose = SQUAREMATRIX (prop)
- where
-  prop ::
-    (Additive m , Distributive m , Fractional a , InvertibleMatrix m , Eq a)
+  prop :: (Additive m, Distributive m, Fractional a, SquareMatrix m, Eq a)
     => m (m a) -> Bool
   prop a = det (transpose a) == det a
 
-prop_detprod :: Property
-prop_detprod = SQUAREMATRIX (prop)
+prop_detProd :: Property
+prop_detProd = SQUAREMATRIX (prop)
  where
-  prop :: (Additive m , Foldable m , Fractional a , InvertibleMatrix m , Eq a)
+  prop :: (Additive m, Foldable m, Fractional a, SquareMatrix m, Eq a)
     => m (m a) -> m (m a) -> Bool
   prop a b = det (a !*! b) == det a * det b
 
-prop_detscalarpow :: Property
-prop_detscalarpow = SQUAREMATRIX (prop)
+prop_detScalarPow :: Property
+prop_detScalarPow = SQUAREMATRIX (prop)
  where
-  prop :: (Additive m, Fractional a , Foldable m , InvertibleMatrix m , Eq a)
+  prop :: (Additive m, Fractional a, Foldable m, SquareMatrix m, Eq a)
     => m (m a) -> a -> Bool
   prop a c = det (c *!! a) == (c ^ n) * det a
    where
     n = length a
 
-prop_inv :: Property
-prop_inv = SQUAREMATRIX (prop)
+-- Trace properties
+prop_traceLinear :: Property
+prop_traceLinear = SQUAREMATRIX (prop)
  where
-  prop :: (Additive m, Fractional a, InvertibleMatrix m, Eq (m (m a)), Eq a)
-    => m (m a) -> Property
-  prop a = (det a /= 0) ==> inv (inv a) == a
+  prop :: (Trace m, Additive m, Num a, Eq a) => m (m a) -> m (m a) -> Bool
+  prop a b = trace (a !+! b) == (trace a + trace b)
 
-prop_invident :: Property
-prop_invident = SQUAREMATRIX (prop)
+prop_traceTranspose :: Property
+prop_traceTranspose = SQUAREMATRIX (prop)
  where
-  prop ::
-    ( Additive m, Foldable m, Traversable m, Applicative m , Fractional a
-    , InvertibleMatrix m , Eq (m (m a)) , Eq a )
-    => m (m a) -> Property
-  prop a = det a /= 0 ==> a !*! inv a == identity
+  prop :: (Trace m, Distributive m, Num a, Eq a) => m (m a) -> Bool
+  prop a = trace a == trace (transpose a)
 
-prop_invmult :: Property
-prop_invmult = SQUAREMATRIX (prop)
+prop_traceSwap :: Property
+prop_traceSwap = SQUAREMATRIX (prop)
  where
-  prop ::
-    ( Additive m, Foldable m, Fractional a, InvertibleMatrix m, Eq a, Eq (m (m a)))
-    => m (m a) -> m (m a) -> Property
-  prop a b = det a /= 0 && det b /= 0 ==> (inv (a !*! b) == (inv b !*! inv a))
+  prop :: (Foldable m, Trace m, Additive m, Eq a, Num a)
+    => m (m a) -> m (m a) -> Bool
+  prop a b = trace (a !*! b) == trace (b !*! a)
 
--- TODO A lot of these are in the wrong branch where we only test them on square matrices
 tests :: [TestTree]
 tests =
   [ testGroup
       "General Matrix Properties" -- These tests don't rely on any specific size of matrix to function
       [ testGroup
           "Basic Properties"
-          [ testProperty "Commutativity of !+! A+B=B+A" prop_AddCommut
-          , testProperty "Associativity of !+! (A+B)+C=A+(B+C)" prop_AddAssoc
-          , testProperty "Distributivity of Matrix A(B+C) = AB+AC" prop_DistOfMatrix
-          , testProperty "Distributivity of Scalar a(B+C) = aB+aC" prop_DistOfScalar
-          , testProperty "Left and right scalar product are equal Ab=bA" prop_LRScalar
+          [ testProperty "commutativity of !+!" prop_addCommut
+          , testProperty "associativity of !+!" prop_addAssoc
+          , testProperty "distributivity of scalar mult" prop_distOfScalar
+          , testProperty "left and right scalar product are equal" prop_LRScalar
           ]
       , testGroup
           "Transpose Properties"
-          [ testProperty "(a^T)^T == a" prop_Transpose
-          , testProperty "(A+B)^T == (A^T + B^T)" prop_TransposeDistAdd
-          , testProperty "(AB)^T == (B^T A^T)" prop_TransposeDistMul
+          [ testProperty "(a^T)^T == a" prop_transpose
+          , testProperty "(A+B)^T == (A^T + B^T)" prop_transposeDistAdd
+          , testProperty "(AB)^T == (B^T A^T)" prop_transposeDistMul
           ]
       , testGroup
           "Identity Properties"
-          [ testProperty "identity is neutral under !*! AI=A" prop_IdentityNeutralR
-          , testProperty "identity is neutral under !*! IA=A" prop_IdentityNeutralL
-          ]
-      , testGroup
-          "Trace Properties"
-          [ testProperty "trace (A+B) == trace A + trace B" prop_TraceLinear
-          , testProperty "trace A == trace (A^T)" prop_TraceTranspose
-          , testProperty "trace (AB) == trace (BA)" prop_TraceSwap
+          [ testProperty "identity is neutral under !*!" prop_IdentityNeutralR
+          , testProperty "identity is neutral under !*!" prop_IdentityNeutralL
           ]
       ]
   , testGroup
       "Square matrix"
-      [ testProperty "Associativity of !*! (AB)C=A(BC)" prop_MulAssoc
-      , testProperty "inv (inv a) == a" prop_inv
-      , testProperty "a !*! inv a == I" prop_invident
-      , testProperty "(AB)^-1 == B^-1 * A^-1" prop_invmult
-      , testProperty "det A^T = det A" prop_dettranspose
-      , testProperty "det (AB) = det A * det B" prop_detprod
-      , testProperty "det (cA) = c^2 * det A" prop_detscalarpow
+      [ testProperty "associativity of !*!" prop_mulAssoc
+      , testProperty "distributivity of !*!" prop_distOfMatrix
+      , testGroup "Inverse properties"
+        [ testProperty "inv (inv a) == a" prop_inv
+        , testProperty "a !*! inv a == I" prop_invIdent
+        , testProperty "(AB)^-1 == B^-1 * A^-1" prop_invMult
+        ]
+      , testGroup "Determinant properties"
+        [ testProperty "det A^T = det A" prop_detTranspose
+        , testProperty "det (AB) = det A * det B" prop_detProd
+        , testProperty "det (cA) = c^2 * det A" prop_detScalarPow
+        ]
+      , testGroup
+        "Trace Properties"
+        [ testProperty "trace (A+B) == trace A + trace B" prop_traceLinear
+        , testProperty "trace A == trace (A^T)" prop_traceTranspose
+        , testProperty "trace (AB) == trace (BA)" prop_traceSwap
+        ]
       ]
   ]
