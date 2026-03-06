@@ -23,6 +23,7 @@ module Linear.Matrix
   , adjoint
   , M22, M23, M24, M32, M33, M34, M42, M43, M44
   , m33_to_m44, m43_to_m44
+  , InvertibleMatrix (..)
   , det22, det33, det44, inv22, inv33, inv44
   , identity
   , Trace(..)
@@ -353,8 +354,7 @@ det44 (V4 (V4 i00 i01 i02 i03)
 -- >>> inv22 $ V2 (V2 1 2) (V2 3 4)
 -- V2 (V2 (-2.0) 1.0) (V2 1.5 (-0.5))
 inv22 :: Fractional a => M22 a -> M22 a
-inv22 m@(V2 (V2 a b) (V2 c d)) = (1 / det) *!! V2 (V2 d (-b)) (V2 (-c) a)
-  where det = det22 m
+inv22 m@(V2 (V2 a b) (V2 c d)) = (1 / det m) *!! V2 (V2 d (-b)) (V2 (-c) a)
 {-# INLINE inv22 #-}
 
 -- |3x3 matrix inverse.
@@ -365,7 +365,7 @@ inv33 :: Fractional a => M33 a -> M33 a
 inv33 m@(V3 (V3 a b c)
             (V3 d e f)
             (V3 g h i))
-  = (1 / det) *!! V3 (V3 a' b' c')
+  = (1 / det m) *!! V3 (V3 a' b' c')
                      (V3 d' e' f')
                      (V3 g' h' i')
   where a' = cofactor (e,f,h,i)
@@ -378,7 +378,6 @@ inv33 m@(V3 (V3 a b c)
         h' = cofactor (b,a,h,g)
         i' = cofactor (a,b,d,e)
         cofactor (q,r,s,t) = det22 (V2 (V2 q r) (V2 s t))
-        det = det33 m
 {-# INLINE inv33 #-}
 
 
@@ -392,7 +391,7 @@ transpose = distribute
 
 -- |4x4 matrix inverse.
 inv44 :: Fractional a => M44 a -> M44 a
-inv44 (V4 (V4 i00 i01 i02 i03)
+inv44 m@(V4 (V4 i00 i01 i02 i03)
           (V4 i10 i11 i12 i13)
           (V4 i20 i21 i22 i23)
           (V4 i30 i31 i32 i33)) =
@@ -408,8 +407,7 @@ inv44 (V4 (V4 i00 i01 i02 i03)
       c2 = i20 * i33 - i30 * i23
       c1 = i20 * i32 - i30 * i22
       c0 = i20 * i31 - i30 * i21
-      det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0
-      invDet = recip det
+      invDet = recip (det m)
   in invDet *!! V4 (V4 (i11 * c5 - i12 * c4 + i13 * c3)
                        (-i01 * c5 + i02 * c4 - i03 * c3)
                        (i31 * s5 - i32 * s4 + i33 * s3)
@@ -427,6 +425,22 @@ inv44 (V4 (V4 i00 i01 i02 i03)
                        (-i30 * s3 + i31 * s1 - i32 * s0)
                        (i20 * s3 - i21 * s1 + i22 * s0))
 {-# INLINE inv44 #-}
+
+class InvertibleMatrix m where
+  det :: Num a => m (m a) -> a
+  inv :: Fractional a => m (m a) -> m (m a)
+
+instance InvertibleMatrix V2 where
+  det = det22
+  inv = inv22
+
+instance InvertibleMatrix V3 where
+  det = det33
+  inv = inv33
+
+instance InvertibleMatrix V4 where
+  det = det44
+  inv = inv44
 
 -- | Compute the (L, U) decomposition of a square matrix using Crout's
 --   algorithm. The 'Index' of the vectors must be 'Integral'.
