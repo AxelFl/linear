@@ -4,13 +4,10 @@
 module Prop.Matrix (tests) where
 
 import Linear.Matrix (
-  M22,
-  M33,
-  M44,
   Trace (trace),
-  det22,
-  det33,
-  det44,
+  det22, inv22,
+  det33, inv33,
+  det44, inv44,
   identity,
   transpose,
   (!!*),
@@ -46,6 +43,22 @@ import Data.Distributive (Distributive)
   testname @V4 @V2 @Rational .&&. \
   testname @V4 @V3 @Rational .&&. \
   testname @V4 @V4 @Rational
+
+class InvertibleMatrix m where
+  det :: Num a => m (m a) -> a
+  inv :: Fractional a => m (m a) -> m (m a)
+
+instance InvertibleMatrix V2 where
+  det = det22
+  inv = inv22
+
+instance InvertibleMatrix V3 where
+  det = det33
+  inv = inv33
+
+instance InvertibleMatrix V4 where
+  det = det44
+  inv = inv44
 
 -- Properties of general matrices
 prop_Transpose :: Property
@@ -105,24 +118,6 @@ prop_LRScalar = ALLMATRIX (prop)
  where
   prop :: (Functor m, Functor n, Num a, Eq (m (n a))) => m (n a) -> a -> Bool
   prop m a = m !!* a == a *!! m
-<<<<<<< HEAD
-=======
-
--- Properties of square matrices
-prop_MulAssoc :: Property
-prop_MulAssoc = SQUAREMATRIX (prop)
- where
-  prop :: (Eq (m (m a)), Additive m, Foldable m, Num a)
-    => m (m a) -> m (m a) -> m (m a) -> Bool
-  prop a b c = ((a !*! b) !*! c) == (a !*! (b !*! c))
-
-prop_DistOfMatrix :: Property
-prop_DistOfMatrix = SQUAREMATRIX (prop)
-<<<<<<< HEAD
-  where 
-    prop:: (Eq (m (m a)), Additive m, Foldable m, Num a) => m (m a) -> m (m a) -> m (m a) -> Bool
-    prop a b c = (a !*! (b !+! c)) == ((a !*! b) !+! (a !*! c)) 
->>>>>>> 5b07d50 (Start cleanup of matrix testing tree)
 
 -- Properties of square matrices
 prop_MulAssoc :: Property
@@ -139,13 +134,6 @@ prop_DistOfMatrix = SQUAREMATRIX (prop)
     => m (m a) -> m (m a) -> m (m a) -> Bool
   prop a b c = (a !*! (b !+! c)) == ((a !*! b) !+! (a !*! c))
 
-=======
- where
-  prop :: (Eq (m (m a)), Additive m, Foldable m, Num a)
-    => m (m a) -> m (m a) -> m (m a) -> Bool
-  prop a b c = (a !*! (b !+! c)) == ((a !*! b) !+! (a !*! c))
-
->>>>>>> ad2d936 (Try to break up some super long lines)
 prop_DistOfScalar :: Property
 prop_DistOfScalar = SQUAREMATRIX (prop)
  where
