@@ -9,6 +9,7 @@ import qualified Prop.Metric
 import qualified Prop.Vector
 import qualified Prop.V2
 import qualified Prop.V3
+import qualified Prop.Affine
 import qualified Unit.Binary
 import qualified Unit.Plucker
 import qualified Unit.V
@@ -22,6 +23,7 @@ tests =
     , testGroup "Vector" Prop.Vector.tests
     , testGroup "V2" Prop.V2.tests
     , testGroup "V3" Prop.V3.tests
+    , testGroup "Affine" Prop.Affine.tests
     ]
   , testGroup "Unit tests"
     [ testGroup "Binary" Unit.Binary.tests
