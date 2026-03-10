@@ -4,6 +4,7 @@ module Main (main) where
 import Test.Tasty (defaultMain, testGroup, TestTree)
 
 import qualified Prop.Quaternion
+import qualified Prop.Metric
 import qualified Prop.Vector
 import qualified Prop.V2
 import qualified Prop.V3
@@ -15,6 +16,7 @@ tests :: [TestTree]
 tests =
   [ testGroup "Property tests"
     [ testGroup "Quaternion" Prop.Quaternion.tests
+    , testGroup "Metric" Prop.Metric.tests
     , testGroup "Vector" Prop.Vector.tests
     , testGroup "V2" Prop.V2.tests
     , testGroup "V3" Prop.V3.tests
